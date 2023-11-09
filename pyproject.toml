@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "pdfino"
+version = "0.0.1"
+authors = ["Eneko Illarramendi <eneko@illarra.com>"]
+description = "An opinionated thin wrapper around the ReportLab Toolkit."
+license = "MIT"
+readme = "README.md"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
+keywords = ["pdf", "reportlab"]
+include = ["pdfino/py.typed"]
+
+[tool.poetry.dependencies]
+python = ">=3.7,<4"
+reportlab = ">4"
+svglib = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+pytest-cov = "*"
+ruff = "*"
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "raise NotImplementedError", "def __repr__"]
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=pdfino --cov-report=term"
+
+[tool.ruff]
+target-version = "py37"
+line-length = 120
+
+[tool.ruff.isort]
+lines-after-imports = 2
+
+[tool.ruff.lint]
+select = ["E", "F", "UP", "B", "SIM", "I"]
+ignore = ["SIM105"]
