@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from pdfino.main import Document, Template
-from pdfino.types import Font, Margins
+from pdfino.type_definitions import Font, Margins
 
 
 FONT_FOLDER = Path(__file__).parent / "fonts"

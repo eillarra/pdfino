@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pdfino"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Eneko Illarramendi <eneko@illarra.com>"]
 description = "An opinionated thin wrapper around the ReportLab Toolkit."
 license = "MIT"
@@ -17,6 +17,7 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
@@ -25,11 +26,12 @@ include = ["pdfino/py.typed"]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4"
-reportlab = ">4"
+reportlab = "^4.0"
 svglib = "*"
 
 [tool.poetry.group.dev.dependencies]
 django = "*"
+mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 ruff = "*"
@@ -38,6 +40,10 @@ sphinx = "*"
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 show_missing = true
+
+[[tool.mypy.overrides]]
+module = "reportlab.*"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=pdfino --cov-report=html"

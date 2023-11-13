@@ -2,7 +2,7 @@
 
 import io
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from reportlab.graphics.shapes import Drawing, Line
 from reportlab.lib.colors import HexColor, black
@@ -13,12 +13,12 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.pdfmetrics import registerFont, registerFontFamily
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
-from reportlab.platypus import BaseDocTemplate, PageBreak, PageTemplate, Paragraph, Spacer
+from reportlab.platypus import BaseDocTemplate, Flowable, PageBreak, PageTemplate, Paragraph, Spacer
 from reportlab.platypus.frames import Frame
 from reportlab.rl_config import canvas_basefontname
 
 from .styles import ParagraphStyle, Stylesheet, get_sample_stylesheet
-from .types import ElementOptions, Font, Margins, Style
+from .type_definitions import ElementOptions, Font, Margins, Style
 from .utils import get_margins
 
 
@@ -28,11 +28,11 @@ REPORTLAB_INNER_FRAME_PADDING = 6
 class Template:
     """A template that can be used to generate a PDF file."""
 
-    pagesize: tuple[int, int] = A4
+    pagesize: Tuple[int, int] = A4
     margins: Margins = Margins(15 * mm, 15 * mm, 15 * mm, 15 * mm)
-    fonts: list[Font] = []
+    fonts: List[Font] = []
     use_sample_stylesheet: bool = True
-    styles: list[Union[Style, ParagraphStyle]] = []
+    styles: List[Union[Style, ParagraphStyle]] = []
 
     def __init__(self) -> None:
         """Initialize the template."""
@@ -137,7 +137,7 @@ class Document:
             bottomMargin=self.template_class.margins.bottom - REPORTLAB_INNER_FRAME_PADDING,
             leftMargin=self.template_class.margins.left - REPORTLAB_INNER_FRAME_PADDING,
         )
-        self.elements = []
+        self.elements: List[Flowable] = []
 
     def __enter__(self):
         """Enter the context manager."""
@@ -176,11 +176,11 @@ class Document:
         if not options:
             return self.template._stylesheet[style_name]
 
-        style_changes = {}
+        style_changes: Dict[str, Union[str, int]] = {}
 
         color = options.get("color")
         align = options.get("align")
-        margins = get_margins(options)
+        margins = get_margins(options or {})
 
         if color:
             style_changes["textColor"] = color
@@ -223,7 +223,7 @@ class Document:
         """Add an image to the document elements."""
         raise NotImplementedError
 
-    def add_list(self, items: list[str], style: str, options: Optional[ElementOptions] = None) -> None:
+    def add_list(self, items: List[str], style: str, options: Optional[ElementOptions] = None) -> None:
         """Add a list to the document elements.
 
         Args:
@@ -265,7 +265,7 @@ class Document:
             height: The height of the line.
             options: The options to use for the line.
         """
-        margins = get_margins(options)
+        margins = get_margins(options or {})
 
         if margins.top > 0:
             self.elements.append(Spacer(self.actual_width, margins.top))
@@ -277,7 +277,7 @@ class Document:
                 0,
                 self.actual_width - margins.right,
                 0,
-                strokeColor=options.get("color", black),
+                strokeColor=options.get("color", black) if options else black,
                 strokeWidth=height,
             )
         )
@@ -374,11 +374,11 @@ class Document:
         """
         self.add_separator(height, options=options)
 
-    def ol(self, items: list[str], options: Optional[ElementOptions] = None):
+    def ol(self, items: List[str], options: Optional[ElementOptions] = None):
         """Add an ordered list to the document elements."""
         return self.add_list(items, "ol", options)
 
-    def ul(self, items: list[str], options: Optional[ElementOptions] = None):
+    def ul(self, items: List[str], options: Optional[ElementOptions] = None):
         """Add an unordered list to the document elements."""
         return self.add_list(items, "ul", options)
 

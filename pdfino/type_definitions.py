@@ -1,7 +1,14 @@
 """Module for type definitions."""
 
+import sys
 from pathlib import Path
-from typing import Literal, NamedTuple, Optional, TypedDict
+from typing import NamedTuple, Optional
+
+
+if sys.version_info >= (3, 8):
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import Literal, TypedDict
 
 
 class Margins(NamedTuple):

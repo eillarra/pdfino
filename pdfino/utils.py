@@ -1,6 +1,6 @@
 """Utility functions for PDFINO."""
 
-from .types import ElementOptions, Margins
+from .type_definitions import ElementOptions, Margins
 
 
 def get_margins(options: ElementOptions) -> Margins:

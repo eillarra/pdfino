@@ -47,7 +47,7 @@ poetry run ruff format . && poetry run ruff check pdfino
 
 
 [codecov]: https://codecov.io/gh/eillarra/pdfino
-[codecov-badge]: https://codecov.io/gh/eillarra/pdfino/branch/master/graph/badge.svg
+[codecov-badge]: https://codecov.io/gh/eillarra/pdfino/graph/badge.svg?token=w93ZuZTpkW
 [github-mypy]: https://github.com/eillarra/pdfino/actions?query=workflow%3Amypy
 [github-mypy-badge]: https://github.com/eillarra/pdfino/workflows/mypy/badge.svg
 [github-tests]: https://github.com/eillarra/pdfino/actions?query=workflow%3Atests

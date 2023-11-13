@@ -10,7 +10,7 @@ from reportlab.rl_config import canvas_basefontname
 
 
 if TYPE_CHECKING:
-    from .types import Font
+    from .type_definitions import Font
 
 
 def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:

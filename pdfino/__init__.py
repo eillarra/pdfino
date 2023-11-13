@@ -3,7 +3,7 @@
 from reportlab.lib import pagesizes
 
 from .main import Document, Template
-from .types import Font, Style
+from .type_definitions import Font, Style
 
 
 __all__ = ["Template", "Document", "Font", "Style", "pagesizes"]
