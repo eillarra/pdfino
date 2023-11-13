@@ -9,25 +9,33 @@ PDFINO
 [![license-badge]](LICENSE)
 
 
+PDFINO (/pəˈdɪfino/) is a thin wrapper around [ReportLab][reportlab] that makes it easier to create PDF documents.
+It is an opinionated library that provides a simple API to create templates and documents. Styles are easy to define
+for a template and instead of having to deal with multiple ReportLab styles, PDFINO can create styles on the fly
+and apply them to the document elements based on the options passed to the different methods.
+
+**PDFINO doesn't try to be a full featured PDF library.** It is just a thin wrapper around ReportLab. If you need
+more control over the document, you can always add ReportLab elements directly to it.
+
 ### Basic usage
 
 ```python
 from pdfino import Document
 
-pdf = Document()
-pdf.h1("This is a heading")
-pdf.p("Hello world!", align="center", classes=["mb-md"])
-pdf.p("This is a paragraph.", classes=["mb-md"])
-pdf.p("This is another paragraph.", classes=["mb-md"])
-pdf.get_django_response("hello.pdf")
+with Document() as doc:
+    doc.h1("Hello World", options={"color": "blue", "margin_bottom": 30})
+    doc.p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore...")
+    doc.hr(height=2, options={"color": "#ffa500", "margins": (30, 100, 0, 100)})
+    doc.save_as("hello_world.pdf")
 ```
+
+Complete documentation can be found at [pdfino.readthedocs.io][readthedocs].
 
 ### Run the tests
 
 ```bash
 poetry run pytest --cov=pdfino --cov-report=term
 ```
-
 
 ### Style guide
 
@@ -48,3 +56,6 @@ poetry run ruff format . && poetry run ruff check pdfino
 [pypi]: https://pypi.org/project/pdfino/
 [pypi-badge]: https://badge.fury.io/py/pdfino.svg
 [pypi-versions]: https://img.shields.io/pypi/pyversions/pdfino.svg
+[readthedocs]: https://pdfino.readthedocs.io/en/latest/
+
+[reportlab]: https://www.reportlab.com/opensource/
