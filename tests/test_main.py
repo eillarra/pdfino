@@ -12,21 +12,6 @@ from pdfino.type_definitions import Font, Margins
 FONT_FOLDER = Path(__file__).parent / "fonts"
 
 
-class TemplateForTest(Template):
-    """Test Template class."""
-
-    fonts = [Font("Lexend", normal=FONT_FOLDER / "Lexend-ExtraLight.ttf", default=True)]
-
-
-class TemplateForBrokenTest(Template):
-    """Test a Template class with broken fonts."""
-
-    fonts = [
-        Font("Lexend", normal=FONT_FOLDER / "Lexend-ExtraLight-Broken.ttf", default=True),
-        Font("Lexend", normal=FONT_FOLDER / "Lexend-ExtraLight-Broken.ttf", default=True),
-    ]
-
-
 def test_template_init():
     """Test the initialization of the Template class."""
     template = Template()
@@ -38,15 +23,38 @@ def test_template_init():
     assert template.default_font is None
 
 
-def test_template_register_fonts():
-    """Test the _register_fonts method of the Template class."""
-    TemplateForTest()
+@pytest.mark.parametrize(
+    "font",
+    [
+        Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin.ttf", default=True),
+        Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin.ttf", bold=FONT_FOLDER / "Roboto-Thin.ttf", default=True),
+    ],
+)
+def test_template_register_fonts(font):
+    """Test the _register methods of the Template class."""
+
+    class TemplateWithFonts(Template):
+        fonts = [font]
+
+    TemplateWithFonts()
 
 
-def test_template_register_fonts_broken():
+@pytest.mark.parametrize(
+    "font",
+    [
+        Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin-Broken.ttf", default=True),
+        Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin.ttf", bold=FONT_FOLDER / "Roboto-Thin-Bold.ttf", default=True),
+        Font("Roboto", normal="fonts/Roboto-Thin-Broken.ttf", default=True),
+    ],
+)
+def test_template_register_fonts_broken(font):
     """Test the _register_fonts method of the Template class with broken fonts."""
+
+    class TemplateWithBrokenFonts(Template):
+        fonts = [font]
+
     with pytest.raises(ValueError):
-        TemplateForBrokenTest()
+        TemplateWithBrokenFonts()
 
 
 def test_document_init():
@@ -97,8 +105,6 @@ def test_add_paragraph_invalid_style():
         ("h2", "h2"),
         ("h3", "h3"),
         ("h4", "h4"),
-        ("h5", "h5"),
-        ("h6", "h6"),
         ("p", "p"),
     ],
 )
@@ -112,3 +118,13 @@ def test_magic_methods(method_name, style):
 
     # Check if add_paragraph was called with the correct style
     mock_add_paragraph.assert_called_once_with(text, style=style, options=None)
+
+
+def test_save_as_file():
+    """Test the save_as method of the Document class."""
+    doc = Document()
+    doc.h1("Test")
+    doc.save_as("test.pdf")
+
+    assert Path("test.pdf").exists()
+    Path("test.pdf").unlink()  # noqa: S108

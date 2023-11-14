@@ -2,23 +2,43 @@
 
 import io
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Type, Union, get_args
 
 from reportlab.graphics.shapes import Drawing, Line
-from reportlab.lib.colors import HexColor, black
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
+from reportlab.lib.colors import black
 from reportlab.lib.fonts import tt2ps
-from reportlab.lib.pagesizes import A4, mm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.pdfmetrics import registerFont, registerFontFamily
+from reportlab.lib.pagesizes import mm
+from reportlab.pdfbase.pdfmetrics import (
+    getRegisteredFontNames,
+    registerFont,
+    registerFontFamily,
+)
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
-from reportlab.platypus import BaseDocTemplate, Flowable, PageBreak, PageTemplate, Paragraph, Spacer
-from reportlab.platypus.frames import Frame
+from reportlab.platypus import (
+    BaseDocTemplate,
+    Flowable,
+    Frame,
+    ListFlowable,
+    ListItem,
+    PageBreak,
+    PageTemplate,
+    Paragraph,
+    Spacer,
+)
 from reportlab.rl_config import canvas_basefontname
 
-from .styles import ParagraphStyle, Stylesheet, get_sample_stylesheet
-from .type_definitions import ElementOptions, Font, Margins, Pagesize, ReportLabStyle, Style
+from .styles import ParagraphStyle, get_base_stylesheet, get_modified_style, get_reportlab_kwargs, get_sample_stylesheet
+from .type_definitions import (
+    ElementOptions,
+    Font,
+    Margins,
+    OrderedBulletType,
+    Pagesize,
+    ReportLabStyle,
+    Style,
+    UnorderedBulletType,
+)
 from .utils import get_margins
 
 
@@ -28,7 +48,7 @@ REPORTLAB_INNER_FRAME_PADDING = 6
 class Template:
     """A template that can be used to generate a PDF file."""
 
-    pagesize: Pagesize = Pagesize(*A4)
+    pagesize: Pagesize = Pagesize.from_name("A4")
     margins: Margins = Margins(15 * mm, 15 * mm, 15 * mm, 15 * mm)
     fonts: List[Font] = []
     use_sample_stylesheet: bool = True
@@ -37,12 +57,16 @@ class Template:
     def __init__(self) -> None:
         """Initialize the template."""
         self._register_fonts()
-        self._setup_styles()
+        self._create_stylesheet()
+        self._register_styles(self.styles)
 
     def _register_fonts(self) -> None:
         for font in self.fonts:
-            if not font.normal or not font.normal.is_file():
-                raise ValueError(f"Font {font.name} must have a normal variant which is an existing file.")
+            try:
+                if not font.normal or not font.normal.is_file():
+                    raise ValueError(f"Font {font.name} must have a normal variant which is an existing file.")
+            except AttributeError as exc:
+                raise ValueError(f"Font {font.name} must have a normal variant which is an existing file.") from exc
 
             registerFont(TTFont(font.name, font.normal))
 
@@ -52,10 +76,11 @@ class Template:
                 ("-BoldItalic", font.bold_italic),
             ]
 
-            for suffix, variant in variants:
-                if variant:
-                    assert variant.is_file(), f"Font file {variant} ({suffix}) does not exist."
+            for suffix, variant in [v for v in variants if v[1]]:
+                if variant.is_file():
                     registerFont(TTFont(f"{font.name}{suffix}", variant))
+                else:
+                    raise ValueError(f"Font file {variant} ({suffix}) does not exist.")
 
             registerFontFamily(
                 font.name,
@@ -83,35 +108,42 @@ class Template:
             except AttributeError:
                 pass
 
-    def _setup_styles(self) -> None:
+    def _create_stylesheet(self) -> None:
         if self.use_sample_stylesheet:
             self._stylesheet = get_sample_stylesheet()
-            self._stylesheet.add(ParagraphStyle("p", parent=self._stylesheet["Normal"]))
             self._replace_default_fonts()
         else:
-            self._stylesheet = Stylesheet()
+            self._stylesheet = get_base_stylesheet()
 
-        for style in self.styles:
+    def _register_styles(self, styles: List[Union[Style, ParagraphStyle]]) -> None:
+        for style in styles:
             if isinstance(style, Style):
-                assert (
-                    style.font_name in pdfmetrics.getRegisteredFontNames()
-                ), f"Font {style.font_name} is not registered."
-                paragraph_style = self._style_to_reportlab(style)
-            elif isinstance(style, ParagraphStyle):
-                paragraph_style = style
+                if style.font_name and style.font_name not in getRegisteredFontNames():
+                    raise ValueError(f"Font {style.font_name} is not registered.")
+                reportlab_style = self._style_to_reportlab(style)
+            elif isinstance(style, ParagraphStyle):  # add more types here
+                reportlab_style = style
 
             try:
-                self._stylesheet.add(paragraph_style)
+                self._stylesheet.add(reportlab_style)
             except KeyError:
-                self._stylesheet[style.name].__dict__.update(paragraph_style.__dict__)
+                self._stylesheet[style.name].__dict__.update(reportlab_style.__dict__)
 
-    @staticmethod
-    def _style_to_reportlab(style: Style) -> ParagraphStyle:
+    def _style_to_reportlab(self, style: Style) -> ParagraphStyle:
+        if not style.name:
+            raise ValueError("Style must have a name.")
+
+        try:
+            parent = self.stylesheet[style.parent] if style.parent else None
+        except KeyError:
+            raise ValueError(f"Parent style {style.parent} does not exist.") from None
+
         return ParagraphStyle(
             style.name,
-            fontName=style.font_name,
-            fontSize=style.font_size,
-            textColor=HexColor(style.color),
+            parent=parent,
+            fontName=style.font_name if style.font_name else (parent.fontName or canvas_basefontname),
+            fontSize=style.font_size if style.font_size else (parent.fontSize or 10),
+            **get_reportlab_kwargs(style.options or {}),
         )
 
     @property
@@ -119,15 +151,21 @@ class Template:
         """Return the default font."""
         return next((font for font in self.fonts if font.default), None)
 
+    @property
+    def stylesheet(self) -> Dict[str, ReportLabStyle]:
+        """Return the indexed stylesheet."""
+        return {**self._stylesheet.byName, **self._stylesheet.byAlias}
+
 
 class Document:
     """A PDF document."""
 
-    template_class = Template
+    template_class: Type[Template] = Template
+    styles: List[Union[Style, ParagraphStyle]] = []
 
-    def __init__(self) -> None:
+    def __init__(self, *, template: Optional[Template] = None) -> None:
         """Initialize the document."""
-        self.template = self.template_class()
+        self.template = template if template else self.template_class()
         self.doc = BaseDocTemplate(
             None,
             pagesize=self.template_class.pagesize,
@@ -137,12 +175,11 @@ class Document:
             leftMargin=self.template_class.margins.left - REPORTLAB_INNER_FRAME_PADDING,
         )
         self.elements: List[Flowable] = []
+        self.template._register_styles(self.styles)
 
     def _build(self) -> bytes:
         buffer = io.BytesIO()
-
-        self.doc._calc()
-        frame = Frame(self.doc.leftMargin, self.doc.bottomMargin, self.doc.width, self.doc.height, id="normal")
+        frame = Frame(self.doc.leftMargin, self.doc.bottomMargin, self.doc.width, self.doc.height)
 
         self.doc.addPageTemplates(
             [
@@ -158,7 +195,11 @@ class Document:
         if onLaterPages is _doNothing and hasattr(self, "onLaterPages"):
             self.pageTemplates[1].beforeDrawPage = self.onLaterPages"""
 
-        self.doc.build(self.elements[:], filename=buffer, canvasmaker=Canvas)
+        self.doc.build(
+            self.elements[:],
+            filename=buffer,
+            canvasmaker=Canvas,
+        )
 
         data = buffer.getvalue()
         buffer.close()
@@ -167,50 +208,9 @@ class Document:
 
     def _get_style(self, style_name: str, options: Optional[ElementOptions] = None) -> ParagraphStyle:
         if not options:
-            return self.template._stylesheet[style_name]
+            return self.template.stylesheet[style_name]
 
-        style_changes: Dict[str, Union[str, int]] = {}
-
-        color = options.get("color")
-        align = options.get("align")
-        margins = get_margins(options or {})
-
-        if color:
-            style_changes["textColor"] = color
-
-        if align:
-            style_changes["alignment"] = {
-                "left": TA_LEFT,
-                "right": TA_RIGHT,
-                "center": TA_CENTER,
-                "justify": TA_JUSTIFY,
-            }[align]
-
-        if margins.top:
-            style_changes["spaceBefore"] = margins.top
-
-        if margins.right:
-            style_changes["rightIndent"] = margins.right
-
-        if margins.bottom:
-            style_changes["spaceAfter"] = margins.bottom
-
-        if margins.left:
-            style_changes["leftIndent"] = margins.left
-
-        if style_changes:
-            style_name = self._get_substyle(style_name, str(style_changes), **style_changes)
-
-        return self.template._stylesheet[style_name]
-
-    def _get_substyle(self, style_name: str, substyle_name: str, **kwargs) -> str:
-        substyle_name = f"{style_name}__{substyle_name}"
-        if substyle_name not in self.template._stylesheet:
-            parent_style = self.template._stylesheet[style_name]
-            ParentStyleClass = parent_style.__class__
-            substyle = ParentStyleClass(substyle_name, parent=self.template._stylesheet[style_name], **kwargs)
-            self.template._stylesheet.add(substyle)
-        return substyle_name
+        return get_modified_style(self.template._stylesheet, style_name, options)
 
     def add(self, reportlab_element: Flowable) -> None:
         """Add a ReportLab Flowable directly to the document elements.
@@ -220,23 +220,55 @@ class Document:
         """
         self.elements.append(reportlab_element)
 
-    def add_image(self):
+    def add_image(self) -> None:
         """Add an image to the document elements."""
         raise NotImplementedError
 
-    def add_list(self, items: List[str], style: str, options: Optional[ElementOptions] = None) -> None:
+    def add_list(
+        self,
+        items: List[str],
+        *,
+        bullet_type: Union[OrderedBulletType, UnorderedBulletType],
+        style: str,
+        options: Optional[ElementOptions] = None,
+        item_options: Optional[ElementOptions] = None,
+    ) -> None:
         """Add a list to the document elements.
 
         Args:
             items: The list of items to add.
+            bullet_type: The type of bullet to use for the list.
             style: The style to use for the list.
             options: The options to use for the list.
+            item_options: The options to use for the list items.
         """
         if not style or style not in self.template._stylesheet:
-            raise ValueError("Valid style must be specified for `add_paragraph`")
+            raise ValueError("Valid style must be specified for `add_list`")
 
-        for text in items:
-            self.add_paragraph(text, style=style, options=options)
+        list_items = [
+            ListItem(
+                Paragraph(text, self._get_style("p", item_options)),
+                bulletColor=item_options.get("color", black) if item_options else black,
+            )
+            for text in items
+        ]
+
+        if bullet_type in get_args(UnorderedBulletType):
+            use_bullet = "bullet"
+            start = bullet_type
+        elif bullet_type in get_args(OrderedBulletType):
+            use_bullet = bullet_type
+            start = None
+        else:
+            raise ValueError(f"Invalid bullet type {bullet_type}")
+
+        self.elements.append(
+            ListFlowable(
+                list_items, bulletFontSize=8, bulletType=use_bullet, start=start, style=self._get_style(style, options)
+            )
+        )
+
+        # TODO ^^^^^^: see which styles are used where (ListStyles and ParagraphStyles) and clean up
 
     def add_page_break(self) -> None:
         """Add a page break to the document elements."""
@@ -295,11 +327,11 @@ class Document:
         """
         self.elements.append(Spacer(self.actual_width, height))
 
-    def add_table(self):
+    def add_table(self) -> None:
         """Add a table to the document elements."""
         raise NotImplementedError
 
-    def h1(self, text: str, *, options: Optional[ElementOptions] = None):
+    def h1(self, text: str, *, options: Optional[ElementOptions] = None) -> None:
         """Add a h1 to the document elements.
 
         Args:
@@ -308,7 +340,7 @@ class Document:
         """
         return self.add_paragraph(text, style="h1", options=options)
 
-    def h2(self, text: str, *, options: Optional[ElementOptions] = None):
+    def h2(self, text: str, *, options: Optional[ElementOptions] = None) -> None:
         """Add a h2 to the document elements.
 
         Args:
@@ -317,7 +349,7 @@ class Document:
         """
         return self.add_paragraph(text, style="h2", options=options)
 
-    def h3(self, text: str, *, options: Optional[ElementOptions] = None):
+    def h3(self, text: str, *, options: Optional[ElementOptions] = None) -> None:
         """Add a h3 to the document elements.
 
         Args:
@@ -326,7 +358,7 @@ class Document:
         """
         return self.add_paragraph(text, style="h3", options=options)
 
-    def h4(self, text: str, *, options: Optional[ElementOptions] = None):
+    def h4(self, text: str, *, options: Optional[ElementOptions] = None) -> None:
         """Add a h4 to the document elements.
 
         Args:
@@ -335,25 +367,7 @@ class Document:
         """
         return self.add_paragraph(text, style="h4", options=options)
 
-    def h5(self, text: str, *, options: Optional[ElementOptions] = None):
-        """Add a h5 to the document elements.
-
-        Args:
-            text: The text to add.
-            options: The options to use for the header.
-        """
-        return self.add_paragraph(text, style="h5", options=options)
-
-    def h6(self, text: str, *, options: Optional[ElementOptions] = None):
-        """Add a h6 to the document elements.
-
-        Args:
-            text: The text to add.
-            options: The options to use for the header.
-        """
-        return self.add_paragraph(text, style="h6", options=options)
-
-    def p(self, text: str, *, options: Optional[ElementOptions] = None):
+    def p(self, text: str, *, options: Optional[ElementOptions] = None) -> None:
         """Add a paragraph to the document elements.
 
         Args:
@@ -362,7 +376,7 @@ class Document:
         """
         return self.add_paragraph(text, style="p", options=options)
 
-    def br(self):
+    def br(self) -> None:
         """Add a line break to the document elements."""
         self.add_spacer(12)  # TODO: this should be linked with the line height, which should be defined somewhere
 
@@ -375,33 +389,37 @@ class Document:
         """
         self.add_separator(height, options=options)
 
-    def ol(self, items: List[str], options: Optional[ElementOptions] = None):
+    def ol(
+        self,
+        items: List[str],
+        *,
+        bullet_type: OrderedBulletType = "1",
+        options: Optional[ElementOptions] = None,
+        item_options: Optional[ElementOptions] = None,
+    ) -> None:
         """Add an ordered list to the document elements."""
-        return self.add_list(items, "ol", options)
+        return self.add_list(items, bullet_type=bullet_type, style="ol", options=options, item_options=item_options)
 
-    def ul(self, items: List[str], options: Optional[ElementOptions] = None):
+    def ul(
+        self,
+        items: List[str],
+        *,
+        bullet_type: UnorderedBulletType = "circle",
+        options: Optional[ElementOptions] = None,
+        item_options: Optional[ElementOptions] = None,
+    ) -> None:
         """Add an unordered list to the document elements."""
-        return self.add_list(items, "ul", options)
+        return self.add_list(items, bullet_type=bullet_type, style="ul", options=options, item_options=item_options)
 
     @property
-    def actual_width(self) -> int:
+    def actual_width(self) -> float:
         """Return the actual width of the document."""
         return self.doc.width - (REPORTLAB_INNER_FRAME_PADDING * 2)
 
     @property
-    def default_font(self) -> Optional[Font]:
-        """Return the default font."""
-        return self.template.default_font
-
-    @property
     def bytes(self) -> bytes:
-        """Return the bytes of the document."""
+        """Return the bytes data of the document."""
         return self._build()
-
-    @property
-    def styles(self) -> Dict[str, ReportLabStyle]:
-        """Return the styles of the document."""
-        return {**self.template._stylesheet.byName, **self.template._stylesheet.byAlias}
 
     def save_as(self, file_path: Union[Path, str]) -> None:
         """Save the document to a file.

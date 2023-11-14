@@ -1,27 +1,51 @@
 """Module for type definitions."""
 
-import sys
 from pathlib import Path
-from typing import NamedTuple, Optional, Union
+from typing import Literal, NamedTuple, Optional, TypedDict, Union
 
+from reportlab.lib import pagesizes
 from reportlab.lib.styles import LineStyle, ListStyle, ParagraphStyle
 
 
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
-
-
 class Pagesize(NamedTuple):
-    """Page size."""
+    """NamedTuple representing a page size in points, for a resolution of 72 dpi.
 
-    width: int
-    height: int
+    Args:
+        width: Width of the page.
+        height: Height of the page.
+    """
+
+    width: float
+    height: float
+
+    @classmethod
+    def from_name(cls, pagesize: str) -> "Pagesize":
+        """Alternative constructor to create a Pagesize from a string, e.g. "A4".
+
+        Args:
+            pagesize: ReportLab pagesize.
+
+        Returns:
+            Pagesize named tuple.
+
+        Raises:
+            ValueError: If the pagesize is not a valid constant of `reportlab.lib.pagesizes`.
+        """
+        try:
+            return cls(*getattr(pagesizes, pagesize.upper()))
+        except AttributeError as exc:
+            raise ValueError(f"Invalid pagesize: {pagesize}") from exc
 
 
 class Margins(NamedTuple):
-    """Margins of a page."""
+    """NamedTuple representing margins.
+
+    Args:
+        top: Top margin.
+        right: Right margin.
+        bottom: Bottom margin.
+        left: Left margin.
+    """
 
     top: int
     right: int
@@ -29,20 +53,17 @@ class Margins(NamedTuple):
     left: int
 
 
-class ElementOptions(TypedDict, total=False):
-    """Options for an element."""
-
-    color: str
-    align: Literal["left", "right", "center", "justify"]
-    margin_top: int
-    margin_right: int
-    margin_bottom: int
-    margin_left: int
-    margins: Margins
-
-
 class Font(NamedTuple):
-    """Font definition, with normal, bold, italic and bold_italic variant paths."""
+    """NamedTuple representing a font definition with different variants.
+
+    Args:
+        name: Name of the font.
+        normal: Path to the normal variant of the font.
+        bold: Path to the bold variant of the font.
+        italic: Path to the italic variant of the font.
+        bold_italic: Path to the bold italic variant of the font.
+        default: Whether this font should be used as the default font for a Template.
+    """
 
     name: str
     normal: Path
@@ -52,13 +73,46 @@ class Font(NamedTuple):
     default: bool = False
 
 
-class Style(NamedTuple):
-    """Style."""
+class StyleOptions(TypedDict, total=False):
+    """Styling options for an element."""
 
-    name: str
-    font_name: str
-    font_size: int
     color: str
 
 
+class LayoutOptions(TypedDict, total=False):
+    """Layout options for a page."""
+
+    margin_top: int
+    margin_right: int
+    margin_bottom: int
+    margin_left: int
+    margins: Margins
+
+
+class ElementOptions(LayoutOptions, StyleOptions, total=False):
+    """All options for an element."""
+
+    align: Literal["left", "right", "center", "justify"]
+
+
+class Style(NamedTuple):
+    """NamedTuple representing a style definition.
+
+    Args:
+        name: Name of the style.
+        parent: Parent style to inherit from (name of another style)
+        options: Options for the style.
+        font_name: Name of the font to use.
+        font_size: Size of the font.
+    """
+
+    name: str
+    parent: str = "body"
+    options: Optional[ElementOptions] = None
+    font_name: Optional[str] = None
+    font_size: Optional[str] = None
+
+
 ReportLabStyle = Union[ParagraphStyle, ListStyle, LineStyle]
+OrderedBulletType = Literal["1", "a", "A", "i", "I"]
+UnorderedBulletType = Literal["circle", "square", "blackstar", "sparkle", "diamond"]

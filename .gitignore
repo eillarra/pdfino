@@ -1,6 +1,8 @@
 .DS_Store
 ._*
 
+# Python package
+
 __pycache__
 *.py[cod]
 *$py.class
@@ -16,4 +18,9 @@ __pycache__
 build
 dist
 htmlcov
-Pipfile.lock
+
+# Docs
+
+docs/_build
+docs/_static
+docs/_templates
