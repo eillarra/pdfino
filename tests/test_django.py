@@ -8,9 +8,9 @@ from pdfino.django import PdfResponse
 
 def test_pdf_response():
     """Test the PdfResponse class."""
-    with Document() as doc:
-        doc.p("Test paragraph")
-        data = doc.bytes
+    doc = Document()
+    doc.p("Test paragraph")
+    data = doc.bytes
 
     pdf_response = PdfResponse(data, filename="test.pdf", as_attachment=True)
     assert pdf_response.as_attachment

@@ -2,13 +2,22 @@
 
 import sys
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Union
+
+from reportlab.lib.styles import LineStyle, ListStyle, ParagraphStyle
 
 
 if sys.version_info >= (3, 8):
     from typing import Literal, TypedDict
 else:
     from typing_extensions import Literal, TypedDict
+
+
+class Pagesize(NamedTuple):
+    """Page size."""
+
+    width: int
+    height: int
 
 
 class Margins(NamedTuple):
@@ -50,3 +59,6 @@ class Style(NamedTuple):
     font_name: str
     font_size: int
     color: str
+
+
+ReportLabStyle = Union[ParagraphStyle, ListStyle, LineStyle]

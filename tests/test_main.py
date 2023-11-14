@@ -51,10 +51,10 @@ def test_template_register_fonts_broken():
 
 def test_document_init():
     """Test the initialization of the Document class."""
-    document = Document()
-    assert document.template_class == Template
-    assert isinstance(document.template, Template)
-    assert document.elements == []
+    doc = Document()
+    assert doc.template_class == Template
+    assert isinstance(doc.template, Template)
+    assert doc.elements == []
 
 
 def test_document_add_paragraph():

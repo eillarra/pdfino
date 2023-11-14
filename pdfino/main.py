@@ -2,7 +2,7 @@
 
 import io
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 from reportlab.graphics.shapes import Drawing, Line
 from reportlab.lib.colors import HexColor, black
@@ -18,7 +18,7 @@ from reportlab.platypus.frames import Frame
 from reportlab.rl_config import canvas_basefontname
 
 from .styles import ParagraphStyle, Stylesheet, get_sample_stylesheet
-from .type_definitions import ElementOptions, Font, Margins, Style
+from .type_definitions import ElementOptions, Font, Margins, Pagesize, ReportLabStyle, Style
 from .utils import get_margins
 
 
@@ -28,7 +28,7 @@ REPORTLAB_INNER_FRAME_PADDING = 6
 class Template:
     """A template that can be used to generate a PDF file."""
 
-    pagesize: Tuple[int, int] = A4
+    pagesize: Pagesize = Pagesize(*A4)
     margins: Margins = Margins(15 * mm, 15 * mm, 15 * mm, 15 * mm)
     fonts: List[Font] = []
     use_sample_stylesheet: bool = True
@@ -127,10 +127,9 @@ class Document:
 
     def __init__(self) -> None:
         """Initialize the document."""
-        self.buffer = io.BytesIO()
         self.template = self.template_class()
         self.doc = BaseDocTemplate(
-            self.buffer,
+            None,
             pagesize=self.template_class.pagesize,
             topMargin=self.template_class.margins.top - REPORTLAB_INNER_FRAME_PADDING,  # compensate inner Frame padding
             rightMargin=self.template_class.margins.right - REPORTLAB_INNER_FRAME_PADDING,
@@ -139,20 +138,9 @@ class Document:
         )
         self.elements: List[Flowable] = []
 
-    def __enter__(self):
-        """Enter the context manager."""
-        return self
+    def _build(self) -> bytes:
+        buffer = io.BytesIO()
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
-        """Exit the context manager closing the buffer."""
-        self.buffer.close()
-
-    def _build(self) -> None:
-        """Build the PDF file.
-
-        This method is called automatically when the document is saved to a file
-        or when the bytes property is accessed.
-        """
         self.doc._calc()
         frame = Frame(self.doc.leftMargin, self.doc.bottomMargin, self.doc.width, self.doc.height, id="normal")
 
@@ -170,7 +158,12 @@ class Document:
         if onLaterPages is _doNothing and hasattr(self, "onLaterPages"):
             self.pageTemplates[1].beforeDrawPage = self.onLaterPages"""
 
-        self.doc.build(self.elements, canvasmaker=Canvas)
+        self.doc.build(self.elements[:], filename=buffer, canvasmaker=Canvas)
+
+        data = buffer.getvalue()
+        buffer.close()
+
+        return data
 
     def _get_style(self, style_name: str, options: Optional[ElementOptions] = None) -> ParagraphStyle:
         if not options:
@@ -218,6 +211,14 @@ class Document:
             substyle = ParentStyleClass(substyle_name, parent=self.template._stylesheet[style_name], **kwargs)
             self.template._stylesheet.add(substyle)
         return substyle_name
+
+    def add(self, reportlab_element: Flowable) -> None:
+        """Add a ReportLab Flowable directly to the document elements.
+
+        Args:
+            reportlab_element: The flowable to add.
+        """
+        self.elements.append(reportlab_element)
 
     def add_image(self):
         """Add an image to the document elements."""
@@ -395,8 +396,12 @@ class Document:
     @property
     def bytes(self) -> bytes:
         """Return the bytes of the document."""
-        self._build()
-        return self.buffer.getvalue()
+        return self._build()
+
+    @property
+    def styles(self) -> Dict[str, ReportLabStyle]:
+        """Return the styles of the document."""
+        return {**self.template._stylesheet.byName, **self.template._stylesheet.byAlias}
 
     def save_as(self, file_path: Union[Path, str]) -> None:
         """Save the document to a file.
@@ -404,5 +409,8 @@ class Document:
         Args:
             file_path: The path to the file to save the document to.
         """
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
         with open(file_path, "wb") as f:
             f.write(self.bytes)

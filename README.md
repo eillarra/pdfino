@@ -9,27 +9,38 @@ PDFINO
 [![license-badge]](LICENSE)
 
 
-PDFINO (/pəˈdɪfino/) is a thin wrapper around [ReportLab][reportlab] that makes it easier to create PDF documents.
-It is an opinionated library that provides a simple API to create templates and documents. Styles are easy to define
-for a template and instead of having to deal with multiple ReportLab styles, PDFINO can create styles on the fly
-and apply them to the document elements based on the options passed to the different methods.
+Welcome to PDFINO (/pəˈdɪfino/), a nimble wrapper around [ReportLab][reportlab] designed to simplify PDF document
+creation. It offers an opinionated yet straightforward API for creating templates and documents. Easily define styles
+for templates without the complexity of multiple ReportLab styles. PDFINO dynamically generates and applies styles
+to document elements based on provided options, making the process more intuitive.
 
-**PDFINO doesn't try to be a full featured PDF library.** It is just a thin wrapper around ReportLab. If you need
-more control over the document, you can always add ReportLab elements directly to it.
-
-### Basic usage
+### Getting started
 
 ```python
 from pdfino import Document
 
-with Document() as doc:
-    doc.h1("Hello World", options={"color": "blue", "margin_bottom": 30})
-    doc.p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore...")
-    doc.hr(height=2, options={"color": "#ffa500", "margins": (30, 100, 0, 100)})
-    doc.save_as("hello_world.pdf")
+doc = Document()
+doc.h1("Hello World", options={"color": "blue", "margin_bottom": 30})
+doc.p("Generate PDFs effortlessly with PDFINO.")
+doc.hr(height=2, options={"color": "#ffa500", "margins": (30, 100, 0, 100)})
+doc.bytes  # returns the PDF bytes
+doc.save_as("hello_world.pdf")  # saves the PDF to disk
 ```
 
-Complete documentation can be found at [pdfino.readthedocs.io][readthedocs].
+**Remember:** PDFINO keeps things streamlined, but it won't replace all of ReportLab's powers.
+If you want more control, easily blend ReportLab flowables:
+
+```python
+from reportlab.platypus import Paragraph
+
+from pdfino import Document
+
+doc = Document()
+doc.add(Paragraph("Hello World", doc.styles["h1"]))
+doc.save_as("hello_world.pdf")
+```
+
+For detailed usage, check out [pdfino.readthedocs.io][readthedocs].
 
 ### Run the tests
 
@@ -39,7 +50,7 @@ poetry run pytest --cov=pdfino --cov-report=term
 
 ### Style guide
 
-Tab size is 4 spaces. Max line length is 120. You should run `ruff` before committing any change.
+Tab size is 4 spaces. Keep lines under 120 characters. Feeling iffy? Run `ruff` before you commit:
 
 ```bash
 poetry run ruff format . && poetry run ruff check pdfino
