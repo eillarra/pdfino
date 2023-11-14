@@ -1,9 +1,11 @@
 [tool.poetry]
 name = "pdfino"
-version = "0.0.2"
-authors = ["Eneko Illarramendi <eneko@illarra.com>"]
-description = "An opinionated thin wrapper around the ReportLab Toolkit."
+version = "0.1.0"
 license = "MIT"
+documentation = "https://pdfino.readthedocs.io/"
+repository = "https://github.com/eillarra/pdfino"
+authors = ["Eneko Illarramendi <eneko@illarra.com>"]
+description = "A thin wrapper around ReportLab designed to simplify PDF document creation."
 readme = "README.md"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -12,7 +14,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -22,12 +23,16 @@ classifiers = [
   "Typing :: Typed",
 ]
 keywords = ["pdf", "reportlab"]
-include = ["pdfino/py.typed"]
+packages = [{include = "pdfino"}]
+exclude = ["docs", "tests"]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4"
+python = ">=3.8,<4"
 reportlab = "^4.0"
 svglib = "*"
+
+[tool.poetry.extras]
+markdown = ["markdown-it-py"]
 
 [tool.poetry.group.dev.dependencies]
 django = "*"
@@ -35,7 +40,11 @@ mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 ruff = "*"
+
+[tool.poetry.group.docs.dependencies]
 sphinx = "*"
+sphinx_rtd_theme = "*"
+sphinx_tabs = "*"
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]

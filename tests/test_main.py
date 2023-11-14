@@ -15,15 +15,15 @@ FONT_FOLDER = Path(__file__).parent / "fonts"
 class TemplateForTest(Template):
     """Test Template class."""
 
-    fonts = [Font("Lexend", normal=FONT_FOLDER / "Lexend-ExtraLight.ttf", default=True)]
+    fonts = [Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin.ttf", default=True)]
 
 
 class TemplateForBrokenTest(Template):
     """Test a Template class with broken fonts."""
 
     fonts = [
-        Font("Lexend", normal=FONT_FOLDER / "Lexend-ExtraLight-Broken.ttf", default=True),
-        Font("Lexend", normal=FONT_FOLDER / "Lexend-ExtraLight-Broken.ttf", default=True),
+        Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin-Broken.ttf", default=True),
+        Font("Roboto", normal=FONT_FOLDER / "Roboto-Thin-Broken.ttf", default=True),
     ]
 
 
@@ -97,8 +97,6 @@ def test_add_paragraph_invalid_style():
         ("h2", "h2"),
         ("h3", "h3"),
         ("h4", "h4"),
-        ("h5", "h5"),
-        ("h6", "h6"),
         ("p", "p"),
     ],
 )

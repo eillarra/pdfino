@@ -8,9 +8,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Basic structure of the project.
 - `Template` and `Document` classes.
-- Methods to add elements to the document: p, h1, h2, h3, h4, h5, h6, hr
-- Custom styles via `options` parameter.
+- Methods to add elements to the document: p, h1, h2, h3, h4, h5, h6, hr, ul, ol
 - Sample stylesheet.
+- Custom styles via `options` parameter.
 
 ### Changed
 - 

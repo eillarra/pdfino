@@ -14,7 +14,7 @@ creation. It offers an opinionated yet straightforward API for creating template
 for templates without the complexity of multiple ReportLab styles. PDFINO dynamically generates and applies styles
 to document elements based on provided options, making the process more intuitive.
 
-### Getting started
+### Getting started 🌯
 
 ```python
 from pdfino import Document
@@ -42,13 +42,13 @@ doc.save_as("hello_world.pdf")
 
 For detailed usage, check out [pdfino.readthedocs.io][readthedocs].
 
-### Run the tests
+### Run the tests 🧪
 
 ```bash
 poetry run pytest --cov=pdfino --cov-report=term
 ```
 
-### Style guide
+### Style guide 📖
 
 Tab size is 4 spaces. Keep lines under 120 characters. Feeling iffy? Run `ruff` before you commit:
 
