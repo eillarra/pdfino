@@ -1,4 +1,4 @@
-"""Sample stylesheet and style utils for PDFINO."""
+"""Sample stylesheet and style utils for PDFino."""
 
 from typing import TYPE_CHECKING, Dict, Optional, Union
 
@@ -66,7 +66,8 @@ def get_modified_style(stylesheet: Stylesheet, style_name: str, options: "Elemen
     style_changes = get_reportlab_kwargs(options)
 
     if style_changes:
-        substyle_name = f"{style_name}__{str(style_changes)}"
+        pretty_options = "__".join(f"{k}_{v}" for k, v in options.items())
+        substyle_name = f"{style_name}__{pretty_options}".lower()
 
         if substyle_name not in stylesheet:
             parent_style = stylesheet[style_name]
@@ -77,7 +78,7 @@ def get_modified_style(stylesheet: Stylesheet, style_name: str, options: "Elemen
     return stylesheet[substyle_name]
 
 
-def get_base_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
+def get_base_stylesheet(base_font_size: int, default_font: Optional["Font"] = None) -> Stylesheet:
     """Returns a base stylesheet object.
 
     It only includes a base paragraph style and a base list style.
@@ -89,14 +90,15 @@ def get_base_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
     base_font_name_italic = tt2ps(base_font_name, 0, 1)
     base_font_name_bold_italic = tt2ps(base_font_name, 1, 1)
 
-    stylesheet.add(ParagraphStyle(name="Normal", fontName=base_font_name, fontSize=10, leading=100))
-    stylesheet.add(ParagraphStyle(name="BodyText", parent=stylesheet["Normal"], spaceBefore=6), alias="body")
-    stylesheet.add(ParagraphStyle(name="Italic", parent=stylesheet["BodyText"], fontName=base_font_name_italic))
+    stylesheet.add(ParagraphStyle(name="normal", fontName=base_font_name, fontSize=base_font_size, leading=10))
+    stylesheet.add(ParagraphStyle(name="bodytext", parent=stylesheet["normal"]), alias="body")
+    stylesheet.add(ParagraphStyle(name="bold", parent=stylesheet["bodytext"], fontName=base_font_name_bold))
+    stylesheet.add(ParagraphStyle(name="italic", parent=stylesheet["bodytext"], fontName=base_font_name_italic))
 
     return stylesheet
 
 
-def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
+def get_sample_stylesheet(base_font_size: int, default_font: Optional["Font"] = None) -> Stylesheet:
     """Returns a sample stylesheet object.
 
     Based on `reportlab.lib.styles.getSampleStyleSheet` but with
@@ -107,12 +109,12 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
     base_font_name_italic = tt2ps(base_font_name, 0, 1)
     base_font_name_bold_italic = tt2ps(base_font_name, 1, 1)
 
-    stylesheet = get_base_stylesheet(default_font)
+    stylesheet = get_base_stylesheet(base_font_size, default_font)
 
     stylesheet.add(
         ParagraphStyle(
-            name="Heading1",
-            parent=stylesheet["Normal"],
+            name="heading1",
+            parent=stylesheet["normal"],
             fontName=base_font_name_bold,
             fontSize=18,
             leading=22,
@@ -123,8 +125,8 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
 
     stylesheet.add(
         ParagraphStyle(
-            name="Heading2",
-            parent=stylesheet["Normal"],
+            name="heading2",
+            parent=stylesheet["normal"],
             fontName=base_font_name_bold,
             fontSize=14,
             leading=18,
@@ -136,8 +138,8 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
 
     stylesheet.add(
         ParagraphStyle(
-            name="Heading3",
-            parent=stylesheet["Normal"],
+            name="heading3",
+            parent=stylesheet["normal"],
             fontName=base_font_name_bold_italic,
             fontSize=12,
             leading=14,
@@ -149,8 +151,8 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
 
     stylesheet.add(
         ParagraphStyle(
-            name="Heading4",
-            parent=stylesheet["Normal"],
+            name="heading4",
+            parent=stylesheet["normal"],
             fontName=base_font_name_bold_italic,
             fontSize=10,
             leading=12,
@@ -160,16 +162,16 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
         alias="h4",
     )
 
-    stylesheet.add(ParagraphStyle(name="Paragraph", parent=stylesheet["Normal"]), alias="p")
+    stylesheet.add(ParagraphStyle(name="paragraph", parent=stylesheet["normal"]), alias="p")
 
     stylesheet.add(
-        ParagraphStyle(name="Bullet", parent=stylesheet["Normal"], firstLineIndent=0, spaceBefore=3), alias="bu"
+        ParagraphStyle(name="bullet", parent=stylesheet["normal"], firstLineIndent=0, spaceBefore=3), alias="bu"
     )
 
     stylesheet.add(
         ParagraphStyle(
-            name="Definition",
-            parent=stylesheet["Normal"],
+            name="definition",
+            parent=stylesheet["normal"],
             firstLineIndent=0,
             leftIndent=36,
             bulletIndent=0,
@@ -181,8 +183,8 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
 
     stylesheet.add(
         ParagraphStyle(
-            name="Code",
-            parent=stylesheet["Normal"],
+            name="code",
+            parent=stylesheet["normal"],
             fontName="Courier",
             fontSize=8,
             leading=8.8,
@@ -194,7 +196,7 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
 
     stylesheet.add(
         ListStyle(
-            name="UnorderedList",
+            name="unorderedlist",
             parent=None,
             leftIndent=18,
             rightIndent=0,
@@ -215,7 +217,7 @@ def get_sample_stylesheet(default_font: Optional["Font"] = None) -> Stylesheet:
 
     stylesheet.add(
         ListStyle(
-            name="OrderedList",
+            name="orderedlist",
             parent=None,
             leftIndent=18,
             rightIndent=0,

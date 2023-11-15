@@ -1,4 +1,4 @@
-"""Module for the main PDFINO classes and API."""
+"""Module for the main PDFino classes and API."""
 
 import io
 from pathlib import Path
@@ -51,6 +51,7 @@ class Template:
     pagesize: Pagesize = Pagesize.from_name("A4")
     margins: Margins = Margins(15 * mm, 15 * mm, 15 * mm, 15 * mm)
     fonts: List[Font] = []
+    base_font_size: int = 12
     use_sample_stylesheet: bool = True
     styles: List[Union[Style, ParagraphStyle]] = []
 
@@ -110,10 +111,10 @@ class Template:
 
     def _create_stylesheet(self) -> None:
         if self.use_sample_stylesheet:
-            self._stylesheet = get_sample_stylesheet()
+            self._stylesheet = get_sample_stylesheet(base_font_size=self.base_font_size)
             self._replace_default_fonts()
         else:
-            self._stylesheet = get_base_stylesheet()
+            self._stylesheet = get_base_stylesheet(base_font_size=self.base_font_size)
 
     def _register_styles(self, styles: List[Union[Style, ParagraphStyle]]) -> None:
         for style in styles:
@@ -133,16 +134,24 @@ class Template:
         if not style.name:
             raise ValueError("Style must have a name.")
 
+        default_font_name = self.default_font.name if self.default_font else canvas_basefontname
+        default_font_size = self.base_font_size
+        default_line_height = int(default_font_size * 1.35)
+
         try:
             parent = self.stylesheet[style.parent] if style.parent else None
+            default_font_name = parent.fontName if parent else default_font_name
+            default_font_size = parent.fontSize if parent else default_font_size
+            default_line_height = parent.leading if parent else default_line_height
         except KeyError:
             raise ValueError(f"Parent style {style.parent} does not exist.") from None
 
         return ParagraphStyle(
-            style.name,
+            style.name.lower(),
             parent=parent,
-            fontName=style.font_name if style.font_name else (parent.fontName or canvas_basefontname),
-            fontSize=style.font_size if style.font_size else (parent.fontSize or 10),
+            fontName=style.font_name if style.font_name else default_font_name,
+            fontSize=style.font_size if style.font_size else default_font_size,
+            leading=style.font_size * style.line_height if style.line_height else default_line_height,
             **get_reportlab_kwargs(style.options or {}),
         )
 
@@ -207,6 +216,8 @@ class Document:
         return data
 
     def _get_style(self, style_name: str, options: Optional[ElementOptions] = None) -> ParagraphStyle:
+        style_name = style_name.lower()
+
         if not options:
             return self.template.stylesheet[style_name]
 
@@ -420,6 +431,11 @@ class Document:
     def bytes(self) -> bytes:
         """Return the bytes data of the document."""
         return self._build()
+
+    @property
+    def stylesheet(self) -> Dict[str, ReportLabStyle]:
+        """Return the indexed stylesheet."""
+        return self.template.stylesheet
 
     def save_as(self, file_path: Union[Path, str]) -> None:
         """Save the document to a file.

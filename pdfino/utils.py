@@ -1,4 +1,4 @@
-"""Utility functions for PDFINO."""
+"""Utility functions for PDFino."""
 
 from .type_definitions import ElementOptions, Margins
 

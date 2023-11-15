@@ -5,12 +5,13 @@ Integrations
 Django
 ------
 
-PDFINO includes a Django response that can be used directly in a view:
+PDFino includes a Django response that can be used directly in a view:
 
 .. code-block:: python
 
   from pdfino import Document
   from pdfino.django import PdfResponse
+
 
   def my_view(request):
       doc = Document()

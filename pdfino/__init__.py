@@ -1,4 +1,4 @@
-"""PDFINO is a thin wrapper around ReportLab to make it easier to create PDFs."""
+"""PDFino is a thin wrapper around ReportLab to make it easier to create PDFs."""
 
 from reportlab.rl_config import canvas_basefontname as default_font_name
 

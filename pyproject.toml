@@ -44,11 +44,12 @@ ruff = "*"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"
-sphinx_rtd_theme = "*"
-sphinx_tabs = "*"
+sphinx-rtd-theme = "*"
+sphinx-copybutton = "*"
+sphinx-tabs = "*"
 
 [tool.coverage.report]
-exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]
 show_missing = true
 
 [[tool.mypy.overrides]]

@@ -7,15 +7,17 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "PDFINO"
-copyright = "2023, Eneko Illarramendi"
+project = "PDFino"
+copyright = "2023, eillarra"
 author = "Eneko Illarramendi"
-release = "0.1.0"
+
+release = "0.1"
+version = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_tabs.tabs"]
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_copybutton", "sphinx_tabs.tabs"]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

@@ -25,7 +25,7 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 
           pagesize = Pagesize.from_name("Letter")
           fonts = [
-              Font("Roboto", normal=Path("Roboto-Regular.ttf"), bold=Path("Roboto-Bold.ttf"), default=True)
+              Font("Roboto", default=True, normal=Path("Roboto-Regular.ttf"), bold=Path("Roboto-Bold.ttf"))
           ]
 
 
@@ -62,7 +62,7 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 Default styles
 --------------
 
-Styles are something that require some tweaking in ReportLab. In PDFINO, some styles are created by default for you
+Styles are something that require some tweaking in ReportLab. In PDFino, some styles are created by default for you
 and you have a simple API to add new ones or modify the existing ones. You can also use the ``options`` parameter
 to change the style of a single element without having to create new styles.
 
@@ -81,17 +81,15 @@ for a :class:`pdfino.Template`. The default styles are:
 
   .. code-block:: python
 
-    from pdfino import document
-
-    doc = document()
+    doc = Document()
     doc.h1("Hello world!")
     doc.h3("This is a subtitle.")
     doc.p("This is a paragraph.")
 
-  You can start with a clean sheet if you use the ``use_sample_stylesheet = False`` parameter in your custom template
-  class, but then you will have to create your own default styles if you want to use the shortcut API. The shortcut API
-  just calls the :meth:`pdfino.Document.add_paragraph` method with the corresponding style name, so if you don't want
-  to use the default styles, you can just call that method directly.
+  You can start with a clean stylesheet if you use the ``use_sample_stylesheet = False`` parameter in your custom
+  template class, but then you will have to create your own default styles if you want to use the shortcut API.
+  The shortcut API just calls the :meth:`pdfino.Document.add_paragraph` method with the corresponding style name,
+  so if you don't want to use the default styles, you can just call that method directly.
 
 Custom styles
 -------------
@@ -109,10 +107,13 @@ template class or document class.
   class MyTemplate(Template):
       use_sample_stylesheet = False
       pagesize = Pagesize.from_name("A5")
-      fonts = [Font("Roboto", normal=Path("Roboto-Thin.ttf"), default=True)]
+      fonts = [
+          Font("Roboto Slab", normal=Path("Roboto-Slab.ttf")),
+          Font("Roboto", default=True, normal=Path("Roboto-Thin.ttf"), bold=Path("Roboto-Regular.ttf")),
+      ]
       styles = [
-          Style("h1", font_name="Roboto", font_size=20),
-          Style("p", font_name="Roboto", font_size=10, options={"align": "justify"}),
+          Style("h1", font_name="Roboto Slab", font_size=20),
+          Style("p", font_size=10, options={"align": "justify"}),
       ]
 
 
@@ -125,7 +126,7 @@ template class or document class.
 
 
   doc = MyDocument()
-  doc.h1("Hello world!")
+  doc.h1("Hello world! In Roboto Slab!")
   doc.p("This is a justified paragraph, defined in the template.")
   doc.note("This is my special paragraph for notes. I even created a method for it!")
   doc.p("This is another paragraph, with centered text.", options={"align": "center"})

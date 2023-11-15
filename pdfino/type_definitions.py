@@ -104,13 +104,15 @@ class Style(NamedTuple):
         options: Options for the style.
         font_name: Name of the font to use.
         font_size: Size of the font.
+        line_height: Line height of the style, relative to the font size.
     """
 
     name: str
-    parent: str = "body"
+    parent: Optional[str] = None
     options: Optional[ElementOptions] = None
     font_name: Optional[str] = None
-    font_size: Optional[str] = None
+    font_size: Optional[Union[int, float]] = None
+    line_height: Optional[Union[int, float]] = None
 
 
 ReportLabStyle = Union[ParagraphStyle, ListStyle, LineStyle]

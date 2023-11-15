@@ -1,4 +1,4 @@
-PDFINO
+PDFino
 ======
 
 [![github-tests-badge]][github-tests]
@@ -9,32 +9,33 @@ PDFINO
 [![license-badge]](LICENSE)
 
 
-Welcome to PDFINO (/pəˈdɪfino/), a nimble wrapper around [ReportLab][reportlab] designed to simplify PDF document
-creation. It offers an opinionated yet straightforward API for creating templates and documents. Easily define styles
-for templates without the complexity of multiple ReportLab styles. PDFINO dynamically generates and applies styles
-to document elements based on provided options, making the process more intuitive.
+PDFino (/pəˈdɪfino/) is a Python library for generating PDF files. It is built on top of [ReportLab][reportlab],
+a powerful PDF generation library for Python. PDFino is designed to be simple and easy to use.
+It provides a high-level API for generating PDF files without having to deal with the low-level details of ReportLab.
 
 ### Getting started 🌯
 
 ```python
 from pdfino import Document
 
+
 doc = Document()
 doc.h1("Hello World", options={"color": "blue", "margin_bottom": 30})
-doc.p("Generate PDFs effortlessly with PDFINO.")
+doc.p("Generate PDFs effortlessly with PDFino.")
 doc.hr(height=2, options={"color": "#ffa500", "margins": (30, 100, 0, 100)})
 data = doc.bytes
 ```
 
-**Remember:** PDFINO keeps things streamlined, but it won't replace all of ReportLab's powers.
-If you want more control, easily blend ReportLab flowables:
+PDFino keeps things streamlined, but **it won't replace all of ReportLab's powers**. You can always add ReportLab
+flowables directly to your document if you need to.
 
 ```python
 from pdfino import Document
 from reportlab.platypus import Paragraph
 
+
 doc = Document()
-doc.add(Paragraph("Hello World", doc.styles["h1"]))
+doc.add(Paragraph("Hello World", doc.stylesheet["h1"]))
 doc.save_as("hello_world.pdf")
 ```
 

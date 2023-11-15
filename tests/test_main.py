@@ -80,7 +80,7 @@ def test_add_paragraph():
     """Test the add_paragraph method of the Document class."""
     with patch("pdfino.main.Paragraph") as mock_paragraph:
         doc = Document()
-        style = "BodyText"
+        style = "BodyText".lower()
         text = "Test paragraph"
         doc.add_paragraph(text, style=style)
 

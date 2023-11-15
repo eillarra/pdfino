@@ -1,10 +1,9 @@
 """Test styling in the pdfino.main module."""
+
 import pytest
 
-from pathlib import Path
-
 from pdfino.main import Document, Template
-from pdfino.styles import TA_LEFT, TA_RIGHT, colors, get_reportlab_kwargs
+from pdfino.styles import TA_LEFT, TA_RIGHT, colors, get_modified_style, get_reportlab_kwargs, get_sample_stylesheet
 from pdfino.type_definitions import Style
 
 
@@ -57,8 +56,18 @@ def test_get_reportlab_kwargs(options, expected):
     assert result == expected
 
 
-def test_p_changed():
-    """Test the initialization of the Template class."""
+def test_modified_styles():
+    """Test the modification of styles via options."""
+    stylesheet = get_sample_stylesheet(base_font_size=10)
+    assert stylesheet["p"].textColor == colors.black
+
+    modified_style = get_modified_style(stylesheet, "p", {"color": "red"})
+    assert modified_style.textColor == colors.red
+    assert modified_style.name == "p__color_red"
+
+
+def test_custom_styles():
+    """Test the initialization of styles in a Template class."""
 
     class CustomTemplate(Template):
         """Test Template class."""

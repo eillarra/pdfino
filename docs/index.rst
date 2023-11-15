@@ -2,17 +2,17 @@
 Welcome to ``pdfino``
 =====================
 
-PDFINO is a Python library for generating PDF files. It is built on top of `ReportLab`_,
-a powerful PDF generation library for Python. PDFINO is designed to be simple and easy to use.
+PDFino (/pəˈdɪfino/) is a Python library for generating PDF files. It is built on top of `ReportLab`_,
+a powerful PDF generation library for Python. PDFino is designed to be simple and easy to use.
 It provides a high-level API for generating PDF files without having to deal with the low-level details of ReportLab.
 
-PDFINO keeps things streamlined, but **it won't replace all of ReportLab's powers**. You can always add ReportLab
+PDFino keeps things streamlined, but **it won't replace all of ReportLab's powers**. You can always add ReportLab
 flowables directly to your document if you need to.
 
 .. toctree::
   :maxdepth: 1
   :hidden:
-  :caption: Useful links
+  :caption: Documentation
 
   quickstart
   templates
