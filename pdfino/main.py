@@ -86,11 +86,12 @@ class Template:
                 ("-BoldItalic", font.bold_italic),
             ]
 
-            for suffix, variant in [v for v in variants if v[1]]:
-                if variant.is_file():
-                    registerFont(TTFont(f"{font.name}{suffix}", variant))
-                else:
-                    raise ValueError(f"Font file {variant} ({suffix}) does not exist.")
+            for suffix, variant in variants:
+                if variant:
+                    if variant.is_file():
+                        registerFont(TTFont(f"{font.name}{suffix}", variant))
+                    else:
+                        raise ValueError(f"Font file {variant} ({suffix}) does not exist.")
 
             registerFontFamily(
                 font.name,
@@ -119,17 +120,15 @@ class Template:
                 pass
 
     def _create_stylesheet(self) -> None:
-        stylesheet_args = {
-            "font_size": self.font_size,
-            "line_height": self.line_height,
-            "default_font": self.default_font,
-        }
-
         if self.use_sample_stylesheet:
-            self._stylesheet = get_sample_stylesheet(**stylesheet_args)
+            self._stylesheet = get_sample_stylesheet(
+                font_size=self.font_size, line_height=self.line_height, default_font=self.default_font
+            )
             self._replace_default_fonts()
         else:
-            self._stylesheet = get_base_stylesheet(**stylesheet_args)
+            self._stylesheet = get_base_stylesheet(
+                font_size=self.font_size, line_height=self.line_height, default_font=self.default_font
+            )
 
     def _register_styles(self, styles: List[Union[Style, ParagraphStyle]]) -> None:
         for style in styles:
