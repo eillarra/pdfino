@@ -28,7 +28,15 @@ from reportlab.platypus import (
 )
 from reportlab.rl_config import canvas_basefontname
 
-from .styles import ParagraphStyle, get_base_stylesheet, get_modified_style, get_reportlab_kwargs, get_sample_stylesheet
+from .styles import (
+    BASE_FONT_SIZE,
+    BASE_LINE_HEIGHT,
+    ParagraphStyle,
+    get_base_stylesheet,
+    get_modified_style,
+    get_reportlab_kwargs,
+    get_sample_stylesheet,
+)
 from .type_definitions import (
     ElementOptions,
     Font,
@@ -51,7 +59,8 @@ class Template:
     pagesize: Pagesize = Pagesize.from_name("A4")
     margins: Margins = Margins(15 * mm, 15 * mm, 15 * mm, 15 * mm)
     fonts: List[Font] = []
-    base_font_size: int = 12
+    font_size: int = BASE_FONT_SIZE
+    line_height: float = BASE_LINE_HEIGHT
     use_sample_stylesheet: bool = True
     styles: List[Union[Style, ParagraphStyle]] = []
 
@@ -110,11 +119,17 @@ class Template:
                 pass
 
     def _create_stylesheet(self) -> None:
+        stylesheet_args = {
+            "font_size": self.font_size,
+            "line_height": self.line_height,
+            "default_font": self.default_font,
+        }
+
         if self.use_sample_stylesheet:
-            self._stylesheet = get_sample_stylesheet(base_font_size=self.base_font_size)
+            self._stylesheet = get_sample_stylesheet(**stylesheet_args)
             self._replace_default_fonts()
         else:
-            self._stylesheet = get_base_stylesheet(base_font_size=self.base_font_size)
+            self._stylesheet = get_base_stylesheet(**stylesheet_args)
 
     def _register_styles(self, styles: List[Union[Style, ParagraphStyle]]) -> None:
         for style in styles:
@@ -135,23 +150,27 @@ class Template:
             raise ValueError("Style must have a name.")
 
         default_font_name = self.default_font.name if self.default_font else canvas_basefontname
-        default_font_size = self.base_font_size
-        default_line_height = int(default_font_size * 1.35)
+        default_font_size = self.font_size
+        default_line_height = self.line_height
 
         try:
             parent = self.stylesheet[style.parent] if style.parent else None
             default_font_name = parent.fontName if parent else default_font_name
             default_font_size = parent.fontSize if parent else default_font_size
-            default_line_height = parent.leading if parent else default_line_height
-        except KeyError:
-            raise ValueError(f"Parent style {style.parent} does not exist.") from None
+            default_line_height = parent.leading / parent.fontSize if parent else default_line_height
+        except KeyError as exc:
+            raise ValueError(f"Parent style {style.parent} does not exist.") from exc
+
+        font_name = style.font_name if style.font_name else default_font_name
+        font_size = style.font_size if style.font_size else default_font_size
+        leading = style.line_height * font_size if style.line_height else default_line_height * font_size
 
         return ParagraphStyle(
             style.name.lower(),
             parent=parent,
-            fontName=style.font_name if style.font_name else default_font_name,
-            fontSize=style.font_size if style.font_size else default_font_size,
-            leading=style.font_size * style.line_height if style.line_height else default_line_height,
+            fontName=font_name,
+            fontSize=font_size,
+            leading=leading,
             **get_reportlab_kwargs(style.options or {}),
         )
 

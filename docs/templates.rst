@@ -11,7 +11,7 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 
   .. tab:: Template as parameter
 
-    A template instance can be passed as a parameter to the :class:`pdfino.Document` class constructor:
+    A template instance can be passed as an argument to the :class:`pdfino.Document` class constructor:
 
     .. code-block:: python
 
@@ -36,7 +36,7 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
   .. tab:: Reusable custom document
 
     If you plan to reuse the same template in multiple documents, you can also subclass :class:`pdfino.Document`
-    and set the ``template_class`` attribute:
+    and set the ``template_class`` class attribute:
 
     .. code-block:: python
 
@@ -57,13 +57,14 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 
 .. note::
 
-  The ``template`` parameter has priority over the ``template_class`` attribute if both are specified for a document.
+  The ``template`` init argument has priority over the ``template_class`` class attribute if both are specified
+  for a document.
 
 Default styles
 --------------
 
 Styles are something that require some tweaking in ReportLab. In PDFino, some styles are created by default for you
-and you have a simple API to add new ones or modify the existing ones. You can also use the ``options`` parameter
+and you have a simple API to add new ones or modify the existing ones. You can also use the ``options`` argument
 to change the style of a single element without having to create new styles.
 
 The :func:`pdfino.styles.get_sample_stylesheet` function returns the collection of styles that are created by default
@@ -86,16 +87,16 @@ for a :class:`pdfino.Template`. The default styles are:
     doc.h3("This is a subtitle.")
     doc.p("This is a paragraph.")
 
-  You can start with a clean stylesheet if you use the ``use_sample_stylesheet = False`` parameter in your custom
-  template class, but then you will have to create your own default styles if you want to use the shortcut API.
-  The shortcut API just calls the :meth:`pdfino.Document.add_paragraph` method with the corresponding style name,
-  so if you don't want to use the default styles, you can just call that method directly.
+  You can start with a clean stylesheet if you use the ``use_sample_stylesheet = False`` class attribute in
+  your custom template class, but then you will have to create your own default styles if you want to use the
+  shortcut API. The shortcut API just calls the :meth:`pdfino.Document.add_paragraph` method with the corresponding
+  style name, so if you don't want to use the default styles you can always call that method directly.
 
 Custom styles
 -------------
 
-You can add new styles to your template by adding a ``styles`` attribute (a list of :class:`pdfino.Style`) to your
-template class or document class.
+You can update existing styles or add new styles to your stylesheet by adding a ``styles`` class attribute
+(a list of :class:`pdfino.Style`) to your custom template or document.
 
 .. code-block:: python
 

@@ -58,7 +58,7 @@ def test_get_reportlab_kwargs(options, expected):
 
 def test_modified_styles():
     """Test the modification of styles via options."""
-    stylesheet = get_sample_stylesheet(base_font_size=10)
+    stylesheet = get_sample_stylesheet(font_size=10)
     assert stylesheet["p"].textColor == colors.black
 
     modified_style = get_modified_style(stylesheet, "p", {"color": "red"})

@@ -16,6 +16,10 @@ if TYPE_CHECKING:
     from .type_definitions import ElementOptions, Font
 
 
+BASE_FONT_SIZE = 12
+BASE_LINE_HEIGHT = 1.35
+
+
 def get_reportlab_kwargs(options: "ElementOptions") -> Dict[str, Union[str, int, None]]:
     """Get ReportLab kwargs from the options of an element.
 
@@ -78,7 +82,9 @@ def get_modified_style(stylesheet: Stylesheet, style_name: str, options: "Elemen
     return stylesheet[substyle_name]
 
 
-def get_base_stylesheet(base_font_size: int, default_font: Optional["Font"] = None) -> Stylesheet:
+def get_base_stylesheet(
+    font_size: int = BASE_FONT_SIZE, line_height: float = BASE_LINE_HEIGHT, default_font: Optional["Font"] = None
+) -> Stylesheet:
     """Returns a base stylesheet object.
 
     It only includes a base paragraph style and a base list style.
@@ -90,7 +96,9 @@ def get_base_stylesheet(base_font_size: int, default_font: Optional["Font"] = No
     base_font_name_italic = tt2ps(base_font_name, 0, 1)
     base_font_name_bold_italic = tt2ps(base_font_name, 1, 1)
 
-    stylesheet.add(ParagraphStyle(name="normal", fontName=base_font_name, fontSize=base_font_size, leading=10))
+    leading = font_size * line_height
+
+    stylesheet.add(ParagraphStyle(name="normal", fontName=base_font_name, fontSize=font_size, leading=leading))
     stylesheet.add(ParagraphStyle(name="bodytext", parent=stylesheet["normal"]), alias="body")
     stylesheet.add(ParagraphStyle(name="bold", parent=stylesheet["bodytext"], fontName=base_font_name_bold))
     stylesheet.add(ParagraphStyle(name="italic", parent=stylesheet["bodytext"], fontName=base_font_name_italic))
@@ -98,7 +106,9 @@ def get_base_stylesheet(base_font_size: int, default_font: Optional["Font"] = No
     return stylesheet
 
 
-def get_sample_stylesheet(base_font_size: int, default_font: Optional["Font"] = None) -> Stylesheet:
+def get_sample_stylesheet(
+    font_size: int = BASE_FONT_SIZE, line_height: float = BASE_LINE_HEIGHT, default_font: Optional["Font"] = None
+) -> Stylesheet:
     """Returns a sample stylesheet object.
 
     Based on `reportlab.lib.styles.getSampleStyleSheet` but with
@@ -109,7 +119,7 @@ def get_sample_stylesheet(base_font_size: int, default_font: Optional["Font"] = 
     base_font_name_italic = tt2ps(base_font_name, 0, 1)
     base_font_name_bold_italic = tt2ps(base_font_name, 1, 1)
 
-    stylesheet = get_base_stylesheet(base_font_size, default_font)
+    stylesheet = get_base_stylesheet(font_size, line_height, default_font)
 
     stylesheet.add(
         ParagraphStyle(
