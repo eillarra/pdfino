@@ -195,11 +195,11 @@ class Document:
         self.template = template if template else self.template_class()
         self.doc = BaseDocTemplate(
             None,
-            pagesize=self.template_class.pagesize,
-            topMargin=self.template_class.margins.top - REPORTLAB_INNER_FRAME_PADDING,  # compensate inner Frame padding
-            rightMargin=self.template_class.margins.right - REPORTLAB_INNER_FRAME_PADDING,
-            bottomMargin=self.template_class.margins.bottom - REPORTLAB_INNER_FRAME_PADDING,
-            leftMargin=self.template_class.margins.left - REPORTLAB_INNER_FRAME_PADDING,
+            pagesize=self.template.pagesize,
+            topMargin=self.template.margins.top - REPORTLAB_INNER_FRAME_PADDING,  # compensate inner Frame padding
+            rightMargin=self.template.margins.right - REPORTLAB_INNER_FRAME_PADDING,
+            bottomMargin=self.template.margins.bottom - REPORTLAB_INNER_FRAME_PADDING,
+            leftMargin=self.template.margins.left - REPORTLAB_INNER_FRAME_PADDING,
         )
         self.elements: List[Flowable] = []
         self.template._register_styles(self.styles)
