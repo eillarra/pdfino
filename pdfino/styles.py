@@ -16,18 +16,15 @@ if TYPE_CHECKING:
     from .type_definitions import ElementOptions, Font
 
 
-BASE_FONT_SIZE = 12
-BASE_LINE_HEIGHT = 1.35
+BASE_FONT_SIZE = 10
+BASE_LINE_HEIGHT = 1.5
 
 
 def get_reportlab_kwargs(options: "ElementOptions") -> Dict[str, Union[str, int, None]]:
     """Get ReportLab kwargs from the options of an element.
 
-    Args:
-        options: Options for an element.
-
-    Returns:
-        ReportLab kwargs that can be applied to a ReportLab style.
+    :param options: Options for an element.
+    :return: ReportLab kwargs that can be applied to a ReportLab style.
     """
     reportlab_kwargs: Dict[str, Union[str, int, None]] = {}
 
@@ -66,7 +63,13 @@ def get_reportlab_kwargs(options: "ElementOptions") -> Dict[str, Union[str, int,
 
 
 def get_modified_style(stylesheet: Stylesheet, style_name: str, options: "ElementOptions") -> ParagraphStyle:
-    """Get a modified version of a style, based on the options of the given style."""
+    """Get a modified version of a style, based on the options of the given style.
+
+    :param stylesheet: A ReportLab stylesheet object.
+    :param style_name: The name of the style to modify.
+    :param options: Options for an element.
+    :return: A modified version of the given style.
+    """
     style_changes = get_reportlab_kwargs(options)
 
     if style_changes:
@@ -85,9 +88,14 @@ def get_modified_style(stylesheet: Stylesheet, style_name: str, options: "Elemen
 def get_base_stylesheet(
     font_size: int = BASE_FONT_SIZE, line_height: float = BASE_LINE_HEIGHT, default_font: Optional["Font"] = None
 ) -> Stylesheet:
-    """Returns a base stylesheet object.
+    """Get a base stylesheet object.
 
     It only includes a base paragraph style and a base list style.
+
+    :param font_size: The base font size.
+    :param line_height: The base line height.
+    :param default_font: The default font to use.
+    :return: A base stylesheet object.
     """
     stylesheet = Stylesheet()
 
@@ -109,10 +117,14 @@ def get_base_stylesheet(
 def get_sample_stylesheet(
     font_size: int = BASE_FONT_SIZE, line_height: float = BASE_LINE_HEIGHT, default_font: Optional["Font"] = None
 ) -> Stylesheet:
-    """Returns a sample stylesheet object.
+    """Get a sample stylesheet object.
 
-    Based on `reportlab.lib.styles.getSampleStyleSheet` but with
-    some changes to make it more fino.
+    Based on `reportlab.lib.styles.getSampleStyleSheet` but with some changes to make it more fino.
+
+    :param font_size: The base font size.
+    :param line_height: The base line height.
+    :param default_font: The default font to use.
+    :return: A sample stylesheet object.
     """
     base_font_name = default_font.name if default_font else canvas_basefontname
     base_font_name_bold = tt2ps(base_font_name, 1, 0)
@@ -121,62 +133,27 @@ def get_sample_stylesheet(
 
     stylesheet = get_base_stylesheet(font_size, line_height, default_font)
 
-    stylesheet.add(
-        ParagraphStyle(
-            name="heading1",
-            parent=stylesheet["normal"],
-            fontName=base_font_name_bold,
-            fontSize=18,
-            leading=22,
-            spaceAfter=6,
-        ),
-        alias="h1",
-    )
+    headings = [
+        ("heading1", base_font_name_bold, 18, 22, 6),
+        ("heading2", base_font_name_bold, 14, 18, 6),
+        ("heading3", base_font_name_bold_italic, 12, 14, 6),
+        ("heading4", base_font_name_bold_italic, 10, 12, 4),
+    ]
 
-    stylesheet.add(
-        ParagraphStyle(
-            name="heading2",
-            parent=stylesheet["normal"],
-            fontName=base_font_name_bold,
-            fontSize=14,
-            leading=18,
-            spaceBefore=12,
-            spaceAfter=6,
-        ),
-        alias="h2",
-    )
+    for name, font_name, h_font_size, leading, space_after in headings:
+        stylesheet.add(
+            ParagraphStyle(
+                name=name,
+                parent=stylesheet["normal"],
+                fontName=font_name,
+                fontSize=h_font_size,
+                leading=leading,
+                spaceAfter=space_after,
+            ),
+            alias=f"{name[0]}{name[-1]}",
+        )
 
-    stylesheet.add(
-        ParagraphStyle(
-            name="heading3",
-            parent=stylesheet["normal"],
-            fontName=base_font_name_bold_italic,
-            fontSize=12,
-            leading=14,
-            spaceBefore=12,
-            spaceAfter=6,
-        ),
-        alias="h3",
-    )
-
-    stylesheet.add(
-        ParagraphStyle(
-            name="heading4",
-            parent=stylesheet["normal"],
-            fontName=base_font_name_bold_italic,
-            fontSize=10,
-            leading=12,
-            spaceBefore=10,
-            spaceAfter=4,
-        ),
-        alias="h4",
-    )
-
-    stylesheet.add(ParagraphStyle(name="paragraph", parent=stylesheet["normal"]), alias="p")
-
-    stylesheet.add(
-        ParagraphStyle(name="bullet", parent=stylesheet["normal"], firstLineIndent=0, spaceBefore=3), alias="bu"
-    )
+    stylesheet.add(ParagraphStyle(name="paragraph", parent=stylesheet["normal"], allowWidows=False), alias="p")
 
     stylesheet.add(
         ParagraphStyle(
@@ -208,6 +185,9 @@ def get_sample_stylesheet(
         ListStyle(
             name="unorderedlist",
             parent=None,
+            fontName="Courier",
+            fontSize=8,
+            leading=8.8,
             leftIndent=18,
             rightIndent=0,
             bulletAlign="left",
@@ -228,20 +208,8 @@ def get_sample_stylesheet(
     stylesheet.add(
         ListStyle(
             name="orderedlist",
-            parent=None,
-            leftIndent=18,
-            rightIndent=0,
-            bulletAlign="left",
+            parent=stylesheet["unorderedlist"],
             bulletType="1",
-            bulletColor=colors.black,
-            bulletFontName="Helvetica",
-            bulletFontSize=12,
-            bulletOffsetY=0,
-            bulletDedent="auto",
-            bulletDir="ltr",
-            bulletFormat=None,
-            # start='1 a A i I'.split(),
-            start=None,
         ),
         alias="ol",
     )

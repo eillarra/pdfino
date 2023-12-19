@@ -1,4 +1,4 @@
-"""Test the pdfino.utils module."""
+"""Test the pdfino.type_definitions module."""
 
 import pytest
 from reportlab.lib import pagesizes

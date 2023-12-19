@@ -9,7 +9,7 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 
 .. tabs::
 
-  .. tab:: Template as parameter
+  .. tab:: Template as argument
 
     A template instance can be passed as an argument to the :class:`pdfino.Document` class constructor:
 
@@ -17,23 +17,29 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 
       from pathlib import Path
 
-      from pdfino import Template, Document, Pagesize, Font
+      from pdfino import Document, Font, Pagesize, Template
 
 
       class RobotTemplate(Template):
-          """A template with some custom parameters and styles."""
+          """A template with some custom parameters and fonts."""
 
           pagesize = Pagesize.from_name("Letter")
           fonts = [
-              Font("Roboto", default=True, normal=Path("Roboto-Regular.ttf"), bold=Path("Roboto-Bold.ttf"))
+              Font(
+                  "Roboto",
+                  default=True,
+                  normal=Path("Roboto-Regular.ttf"),
+                  bold=Path("Roboto-Bold.ttf"),
+                  italic=Path("Roboto-Italic.ttf"),
+              )
           ]
 
 
       doc = Document(template=RobotTemplate())
       doc.h1("Hello robots!")
-      doc.save_as("hello.pdf")
+      doc.save_as("hello_robots.pdf")
 
-  .. tab:: Reusable custom document
+  .. tab:: Reusable document
 
     If you plan to reuse the same template in multiple documents, you can also subclass :class:`pdfino.Document`
     and set the ``template_class`` class attribute:
@@ -53,7 +59,7 @@ For example, you can add custom fonts and styles, change the page size, etc. to 
 
       doc = RobotDocument()
       doc.h1("Hello robots!")
-      doc.save_as("hello.pdf")
+      doc.save_as("hello_robots.pdf")
 
 .. note::
 
@@ -109,11 +115,11 @@ You can update existing styles or add new styles to your stylesheet by adding a 
       use_sample_stylesheet = False
       pagesize = Pagesize.from_name("A5")
       fonts = [
-          Font("Roboto Slab", normal=Path("Roboto-Slab.ttf")),
-          Font("Roboto", default=True, normal=Path("Roboto-Thin.ttf"), bold=Path("Roboto-Regular.ttf")),
+          Font("Roboto", default=True, normal=Path("Roboto-Regular.ttf")),
+          Font("RobotoSlab", normal=Path("RobotoSlab-Regular.ttf")),
       ]
       styles = [
-          Style("h1", font_name="Roboto Slab", font_size=20),
+          Style("h1", font_name="RobotoSlab", font_size=20),
           Style("p", font_size=10, options={"align": "justify"}),
       ]
 
@@ -132,3 +138,31 @@ You can update existing styles or add new styles to your stylesheet by adding a 
   doc.note("This is my special paragraph for notes. I even created a method for it!")
   doc.p("This is another paragraph, with centered text.", options={"align": "center"})
   doc.save_as("my_hello.pdf")
+
+Style inheritance
+-----------------
+
+Sample stylesheets can be overridden at the template or document level (styles defined at document level getting
+priority over styles defined at template level). And using the ``options`` argument you can override the style
+of a single element.
+
+.. code-block:: python
+
+  from pdfino import Document, Style, Template
+
+
+  class MyTemplate(Template):
+      font_size = 14
+      styles = [Style("p", options={"color": "#00b300"})]
+
+
+  class MyDocument(Document):
+      template_class = MyTemplate
+      styles = [Style("p", options={"color": "blue", "margin_top": 30, "margin_bottom": 30})]
+
+
+  doc = MyDocument()
+  doc.h1("Hello world!")
+  doc.p("This text is blue.")
+  doc.p("This text is red.", options={"color": "red"})
+  doc.save_as("test.pdf")

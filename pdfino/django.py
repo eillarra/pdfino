@@ -7,7 +7,12 @@ except ImportError as exc:
 
 
 class PdfResponse(HttpResponse):
-    """A Django HttpResponse that returns PDF content."""
+    """A Django HttpResponse that returns PDF content.
+
+    :param content: The PDF content.
+    :param filename: The filename of the PDF.
+    :param as_attachment: Whether the PDF should be returned as an attachment.
+    """
 
     def __init__(self, content: bytes, *, filename: str, as_attachment: bool = False, **kwargs):
         """Create a PDF response."""

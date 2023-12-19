@@ -5,11 +5,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Template margins and pagesize not being applied to the document when using the `template` attribute.
+
 ### Added
--
+- Columns to `Template` class (defaults to one column).
+- Markdown helper for adding complex lists.
+- Title and author for `Document` class.
+- Extra documentation about styles.
 
 ### Changed
-- 
+- Default font size and leading for paragraphs and headings.
+- Hyphenate long words in paragraphs (default is False): needs `pyphen` package.
+- Docstring format, using Sphinx style.
+- Keep separator elements together.
+
+### Removed
+- `bu` style (bullet). Use `ul` instead.
 
 ## [0.1.0] - 2023-11-16
 

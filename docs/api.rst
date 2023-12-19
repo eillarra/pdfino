@@ -13,6 +13,7 @@ Main classes
 .. autoclass:: pdfino.Document
   :members:
   :member-order: bysource
+  :exclude-members: actual_width, template_class
 
 Custom types
 ------------

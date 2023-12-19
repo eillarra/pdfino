@@ -4,13 +4,10 @@ from .type_definitions import ElementOptions, Margins
 
 
 def get_margins(options: ElementOptions) -> Margins:
-    """Returns margins tuple from options.
+    """Get margins from the options of an element.
 
-    Args:
-        options: Options for an element.
-
-    Returns:
-        Margins tuple.
+    :param options: Options for an element.
+    :return: Margins tuple.
     """
     if "margins" in options:
         try:

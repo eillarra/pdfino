@@ -1,3 +1,6 @@
+[project]
+requires-python = ">=3.8"
+
 [tool.poetry]
 name = "pdfino"
 version = "0.1.0"
@@ -57,10 +60,9 @@ module = "reportlab.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "--cov=pdfino --cov-report=html"
+addopts = "--cov=pdfino --cov-report=term"
 
 [tool.ruff]
-target-version = "py37"
 line-length = 120
 
 [tool.ruff.isort]
@@ -69,6 +71,3 @@ lines-after-imports = 2
 [tool.ruff.lint]
 select = ["E", "F", "UP", "B", "SIM", "I", "D"]
 ignore = ["SIM105"]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"

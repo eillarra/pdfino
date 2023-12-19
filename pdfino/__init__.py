@@ -2,7 +2,7 @@
 
 from reportlab.rl_config import canvas_basefontname as default_font_name
 
-from .main import Document, Template
+from .main import Document, Template, mm
 from .type_definitions import Font, Margins, Pagesize, Style
 
 
@@ -15,4 +15,5 @@ __all__ = [
     "Style",
     "Pagesize",
     "default_font_name",
+    "mm",
 ]

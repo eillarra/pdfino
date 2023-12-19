@@ -99,25 +99,24 @@ def test_add_paragraph_invalid_style():
 
 
 @pytest.mark.parametrize(
-    "method_name,style",
+    "magic_method_name, style, method_name",
     [
-        ("h1", "h1"),
-        ("h2", "h2"),
-        ("h3", "h3"),
-        ("h4", "h4"),
-        ("p", "p"),
+        ("h1", "h1", "add_header"),
+        ("h2", "h2", "add_header"),
+        ("h3", "h3", "add_header"),
+        ("h4", "h4", "add_header"),
+        ("p", "p", "add_paragraph"),
     ],
 )
-def test_magic_methods(method_name, style):
+def test_magic_methods(magic_method_name, style, method_name):
     """Test the heading methods of the Document class."""
-    with patch.object(Document, "add_paragraph") as mock_add_paragraph:
+    with patch.object(Document, method_name) as mock_method:
         doc = Document()
         text = "Test heading"
-        method = getattr(doc, method_name)
+        method = getattr(doc, magic_method_name)
         method(text)
 
-    # Check if add_paragraph was called with the correct style
-    mock_add_paragraph.assert_called_once_with(text, style=style, options=None)
+    mock_method.assert_called_once_with(text, style=style, options=None)
 
 
 def test_save_as_file():
