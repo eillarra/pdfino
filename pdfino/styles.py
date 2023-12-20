@@ -110,6 +110,9 @@ def get_base_stylesheet(
     stylesheet.add(ParagraphStyle(name="bodytext", parent=stylesheet["normal"]), alias="body")
     stylesheet.add(ParagraphStyle(name="bold", parent=stylesheet["bodytext"], fontName=base_font_name_bold))
     stylesheet.add(ParagraphStyle(name="italic", parent=stylesheet["bodytext"], fontName=base_font_name_italic))
+    stylesheet.add(
+        ParagraphStyle(name="bolditalic", parent=stylesheet["bodytext"], fontName=base_font_name_bold_italic)
+    )
 
     return stylesheet
 

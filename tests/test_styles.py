@@ -73,10 +73,11 @@ def test_custom_styles():
         """Test Template class."""
 
         styles = [
-            Style("h3", font_size=20, options={"margin_top": 20, "color": "#000000"}),
+            Style("p", font_size=20, options={"margin_top": 20, "color": "#000000"}),
         ]
 
     doc = Document(template=CustomTemplate())
-    doc.h3("Hello world")
+    doc.p("Hello world")
 
     assert len(doc.elements) == 1
+    assert doc.stylesheet["p"].fontSize == 20

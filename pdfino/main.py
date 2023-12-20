@@ -33,6 +33,7 @@ from reportlab.platypus import (
 from reportlab.rl_config import canvas_basefontname
 from svglib.svglib import svg2rlg
 
+from .platypus import OutlineDocTemplate
 from .styles import (
     BASE_FONT_SIZE,
     BASE_LINE_HEIGHT,
@@ -208,12 +209,12 @@ class Template:
 
     @property
     def default_font(self) -> Optional[Font]:
-        """Return the default font."""
+        """The default font."""
         return next((font for font in self.fonts if font.default), None)
 
     @property
     def stylesheet(self) -> Dict[str, ReportLabStyle]:
-        """Return the indexed stylesheet."""
+        """The indexed stylesheet."""
         return {**self._stylesheet.byName, **self._stylesheet.byAlias}
 
 
@@ -238,12 +239,18 @@ class Document:
         title: Optional[str] = None,
         author: Optional[str] = None,
         language: str = "en",
+        outline: bool = False,
     ) -> None:
         """Initialize the document."""
+        self.language = language or "en"
+        self.outline = outline
         self.template = template if template else self.template_class()
+        self.template._register_styles(self.styles, language=self.language)
         self.canvas_class = canvas_class if canvas_class else Canvas
-        self.language = language
-        self.doc = BaseDocTemplate(
+        self.elements: List[Flowable] = []
+
+        DocTemplate = OutlineDocTemplate if outline else BaseDocTemplate
+        self.doc = DocTemplate(
             None,
             pagesize=self.template.pagesize,
             topMargin=self.template.margins.top - REPORTLAB_INNER_FRAME_PADDING,  # compensate inner Frame padding
@@ -253,8 +260,7 @@ class Document:
             title=title,
             author=author,
         )
-        self.elements: List[Flowable] = []
-        self.template._register_styles(self.styles, language=self.language)
+
         self._create_multi_column_template()
 
     def _create_multi_column_template(self):
@@ -276,7 +282,12 @@ class Document:
 
     def _build(self) -> bytes:
         buffer = io.BytesIO()
-        self.doc.build(self.elements[:], filename=buffer, canvasmaker=self.canvas_class)
+
+        if self.outline:
+            self.doc.multiBuild(self.elements[:], filename=buffer, canvasmaker=self.canvas_class)
+        else:
+            self.doc.build(self.elements[:], filename=buffer, canvasmaker=self.canvas_class)
+
         data = buffer.getvalue()
         buffer.close()
 
@@ -461,8 +472,8 @@ class Document:
     ) -> None:
         try:
             from markdown_it import MarkdownIt
-        except ImportError:
-            raise ImportError("The `markdown-it-py` package is required to use `add_list_from_markdown`")
+        except ImportError as exc:
+            raise ImportError("The `markdown-it-py` package is required to use `add_list_from_markdown`") from exc
 
         md = MarkdownIt()
         tokens = md.parse(markdown)
@@ -511,7 +522,10 @@ class Document:
         :param style: The style to use for the header.
         :param options: The options to use for the header.
         """
-        self.add_paragraph(text, style=style, options=options, keep_with_next=True)
+        # FIXME: this is a hack to avoid jumping to a new frame when there is actually enough space
+        # Theoretically we should be using `keep_with_next` here, but that doesn't do what you would expect
+        self.elements.append(CondPageBreak(30 * mm))
+        self.add_paragraph(text, style=style, options=options)
 
     def add_paragraph(
         self, text: str, *, style: str, options: Optional[ElementOptions] = None, keep_with_next: bool = False
@@ -617,7 +631,7 @@ class Document:
 
     def br(self) -> None:
         """Add a line break to the document elements."""
-        self.add_spacer(12)  # TODO: this should be linked with the line height, which should be defined somewhere
+        self.add_paragraph("<br />", style="body")
 
     def hr(self, *, height: int = 1, options: Optional[ElementOptions] = None) -> None:
         """Add a horizontal line to the document elements.
@@ -651,27 +665,27 @@ class Document:
 
     @property
     def actual_width(self) -> float:
-        """Return the actual width of the document."""
+        """The actual width of the document."""
         return self.doc.width - (REPORTLAB_INNER_FRAME_PADDING * 2)
 
     @property
     def column_width(self) -> float:
-        """Return the width of the document columns."""
+        """The width of the document columns."""
         return self._column_width - (REPORTLAB_INNER_FRAME_PADDING * 2)
 
     @property
     def bytes(self) -> bytes:
-        """Return the bytes data of the document."""
+        """The bytes data of the document."""
         return self._build()
 
     @property
     def page_templates(self) -> List[PageTemplate]:
-        """Return the templates of the document."""
+        """The templates of the document."""
         return self.doc.pageTemplates
 
     @property
     def stylesheet(self) -> Dict[str, ReportLabStyle]:
-        """Return the indexed stylesheet."""
+        """The indexed stylesheet."""
         return self.template.stylesheet
 
     def save_as(self, file_path: Union[Path, str]) -> None:

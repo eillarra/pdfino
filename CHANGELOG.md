@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Columns to `Template` class (defaults to one column).
 - Markdown helper for adding complex lists.
 - Title and author for `Document` class.
+- Outline using headings.
 - Extra documentation about styles.
 
 ### Changed
