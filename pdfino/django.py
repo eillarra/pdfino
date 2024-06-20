@@ -2,7 +2,7 @@
 
 try:
     from django.http import HttpResponse  # type: ignore
-except ImportError as exc:
+except ImportError as exc:  # pragma: no cover
     raise ImportError("Django is required for the PdfResponse class") from exc
 
 

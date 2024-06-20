@@ -18,15 +18,17 @@ class Pagesize(NamedTuple):
     height: float
 
     @classmethod
-    def from_name(cls, pagesize: str) -> "Pagesize":
+    def from_name(cls, pagesize: str, *, landscape: bool = False) -> "Pagesize":
         """Alternative constructor to create a Pagesize from a string, e.g. "A4".
 
         :param pagesize: Name of the pagesize, e.g. "A4".
+        :param landscape: Whether the page should be in landscape mode.
         :return: Pagesize named tuple.
         :raises ValueError: If the pagesize is not a valid constant of `reportlab.lib.pagesizes`.
         """
         try:
-            return cls(*getattr(pagesizes, pagesize.upper()))
+            width, height = getattr(pagesizes, pagesize.upper())
+            return cls(width, height) if not landscape else cls(height, width)
         except AttributeError as exc:
             raise ValueError(f"Invalid pagesize: {pagesize}") from exc
 
@@ -40,10 +42,10 @@ class Margins(NamedTuple):
     :param left: Left margin.
     """
 
-    top: int
-    right: int
-    bottom: int
-    left: int
+    top: Union[float | int]
+    right: Union[float | int]
+    bottom: Union[float | int]
+    left: Union[float | int]
 
 
 class Font(NamedTuple):
@@ -84,10 +86,10 @@ class LayoutOptions(TypedDict, total=False):
     :param margins: The margins of the page.
     """
 
-    margin_top: int
-    margin_right: int
-    margin_bottom: int
-    margin_left: int
+    margin_top: Union[float | int]
+    margin_right: Union[float | int]
+    margin_bottom: Union[float | int]
+    margin_left: Union[float | int]
     margins: Margins
 
 
@@ -98,6 +100,7 @@ class ElementOptions(LayoutOptions, StyleOptions, total=False):
     """
 
     align: Literal["left", "right", "center", "justify"]
+    keep_with_next: bool
 
 
 class Style(NamedTuple):

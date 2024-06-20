@@ -72,15 +72,17 @@ def get_modified_style(stylesheet: Stylesheet, style_name: str, options: "Elemen
     """
     style_changes = get_reportlab_kwargs(options)
 
-    if style_changes:
-        pretty_options = "__".join(f"{k}_{v}" for k, v in options.items())
-        substyle_name = f"{style_name}__{pretty_options}".lower()
+    if not style_changes:
+        return stylesheet[style_name]
 
-        if substyle_name not in stylesheet:
-            parent_style = stylesheet[style_name]
-            ParentStyleClass = parent_style.__class__
-            substyle = ParentStyleClass(substyle_name, parent=stylesheet[style_name], **style_changes)
-            stylesheet.add(substyle, alias=substyle_name)
+    pretty_options = "__".join(f"{k}_{v}" for k, v in options.items())
+    substyle_name = f"{style_name}__{pretty_options}".lower()
+
+    if substyle_name not in stylesheet:
+        parent_style = stylesheet[style_name]
+        ParentStyleClass = parent_style.__class__
+        substyle = ParentStyleClass(substyle_name, parent=stylesheet[style_name], **style_changes)
+        stylesheet.add(substyle, alias=substyle_name)
 
     return stylesheet[substyle_name]
 

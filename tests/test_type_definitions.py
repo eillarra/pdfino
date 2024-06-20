@@ -15,8 +15,9 @@ from pdfino.type_definitions import Pagesize
     ],
 )
 def test_pagesize_from_name(name, expected):
-    """Test get_margins function."""
+    """Test pagesize_from_name."""
     assert Pagesize.from_name(name) == expected
+    assert Pagesize.from_name(name, landscape=True) == Pagesize(expected[1], expected[0])
 
 
 @pytest.mark.parametrize(

@@ -14,9 +14,7 @@ from reportlab.pdfbase.pdfmetrics import (
     registerFontFamily,
 )
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
-    BaseDocTemplate,
     CondPageBreak,
     Flowable,
     Frame,
@@ -33,7 +31,7 @@ from reportlab.platypus import (
 from reportlab.rl_config import canvas_basefontname
 from svglib.svglib import svg2rlg
 
-from .platypus import OutlineDocTemplate
+from .platypus import Canvas, DocTemplate, OutlineDocTemplate
 from .styles import (
     BASE_FONT_SIZE,
     BASE_LINE_HEIGHT,
@@ -229,13 +227,14 @@ class Document:
     """
 
     template_class: Type[Template] = Template
+    canvas_class: Type[Canvas] = Canvas
     styles: List[Union[Style, ParagraphStyle]] = []
 
     def __init__(
         self,
         *,
         template: Optional[Template] = None,
-        canvas_class: Optional[Canvas] = None,
+        canvas_class: Optional[Type[Canvas]] = None,
         title: Optional[str] = None,
         author: Optional[str] = None,
         language: str = "en",
@@ -246,11 +245,12 @@ class Document:
         self.outline = outline
         self.template = template if template else self.template_class()
         self.template._register_styles(self.styles, language=self.language)
-        self.canvas_class = canvas_class if canvas_class else Canvas
         self.elements: List[Flowable] = []
 
-        DocTemplate = OutlineDocTemplate if outline else BaseDocTemplate
-        self.doc = DocTemplate(
+        if canvas_class:
+            self.canvas_class = canvas_class
+
+        self.doc = (OutlineDocTemplate if outline else DocTemplate)(
             None,
             pagesize=self.template.pagesize,
             topMargin=self.template.margins.top - REPORTLAB_INNER_FRAME_PADDING,  # compensate inner Frame padding
@@ -527,24 +527,22 @@ class Document:
         self.elements.append(CondPageBreak(30 * mm))
         self.add_paragraph(text, style=style, options=options)
 
-    def add_paragraph(
-        self, text: str, *, style: str, options: Optional[ElementOptions] = None, keep_with_next: bool = False
-    ) -> None:
+    def add_paragraph(self, text: str, *, style: str, options: Optional[ElementOptions] = None) -> None:
         """Add a paragraph to the document elements.
 
         :param text: The text to add.
         :param style: The style to use for the paragraph.
         :param options: The options to use for the paragraph.
-        :param keep_with_next: Whether to keep the paragraph with the next one.
         """
         if not style or style not in self.template._stylesheet:
             raise ValueError("Valid style must be specified for `add_paragraph`")
 
-        self.add(Paragraph(text, self._get_style(style, options)), keep_with_next=keep_with_next)
+        self.add(
+            Paragraph(text, self._get_style(style, options)),
+            keep_with_next=(options or {}).get("keep_with_next", False),
+        )
 
-    def add_separator(
-        self, height: int = 1, *, options: Optional[ElementOptions] = None, keep_with_next: bool = True
-    ) -> None:
+    def add_separator(self, height: int = 1, *, options: Optional[ElementOptions] = None) -> None:
         """Add a line separator to the document elements.
 
         Color and margin options are used for the line.
@@ -552,7 +550,6 @@ class Document:
 
         :param height: The height of the line.
         :param options: The options to use for the line.
-        :param keep_with_next: Whether to keep the separator with the next element.
         """
         separator_elements: List[Flowable] = []
         margins = get_margins(options or {})
@@ -576,7 +573,7 @@ class Document:
         if margins.bottom > 0:
             separator_elements.append(Spacer(self.column_width, margins.bottom))
 
-        self.add(KeepTogether(separator_elements), keep_with_next=keep_with_next)
+        self.add(KeepTogether(separator_elements), keep_with_next=(options or {}).get("keep_with_next", True))
 
     def add_spacer(self, height: int = 1) -> None:
         """Add a spacer to the document elements.

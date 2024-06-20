@@ -7,19 +7,21 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Template margins and pagesize not being applied to the document when using the `template` attribute.
+- Keep separator elements together.
 
 ### Added
+- Custom platypus classes.
 - Columns to `Template` class (defaults to one column).
-- Markdown helper for adding complex lists.
 - Title and author for `Document` class.
 - Outline using headings.
+- Markdown helper for adding complex lists.
+- Landscape for pagesize.
 - Extra documentation about styles.
 
 ### Changed
 - Default font size and leading for paragraphs and headings.
-- Hyphenate long words in paragraphs (default is False): needs `pyphen` package.
-- Docstring format, using Sphinx style.
-- Keep separator elements together.
+- Hyphenate long words in paragraphs (default is False): requires `pyphen` package.
+- Docstring format.
 
 ### Removed
 - `bu` style (bullet). Use `ul` instead.
